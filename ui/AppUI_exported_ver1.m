@@ -6,6 +6,7 @@ classdef AppUI_exported_ver1 < matlab.apps.AppBase
         FileMenu                  matlab.ui.container.Menu
         SaveTextToFileMenu        matlab.ui.container.Menu
         SaveParametersToFileMenu  matlab.ui.container.Menu
+        LoadParametersFromFileMenu  matlab.ui.container.Menu
         MainGridLayout            matlab.ui.container.GridLayout
         RightPanelGridLayout      matlab.ui.container.GridLayout
         OptionsGridLayout         matlab.ui.container.GridLayout
@@ -57,6 +58,9 @@ classdef AppUI_exported_ver1 < matlab.apps.AppBase
 
         separatorFields;
         recognizerFields;
+
+        separator = TextSeparator;
+        recognizer = TextRecognizer;
     end
 
     % Callbacks that handle component events
@@ -64,42 +68,67 @@ classdef AppUI_exported_ver1 < matlab.apps.AppBase
 
         % Button pushed function: GenerateButton
         function generateText(app, event)
-            imageoutput = separate(app.separatorFields); % to bedzie sparsowane potem
-            textoutput = recognize(imageoutput, app.recognizerFields); % to bedzie sparsowane potem
 
+            %%%%%%%%%%%%%%%% separator %%%%%%%%%%%%%%%%
 
-            % TODO 
+            % get values for separator
+            separatorValues = {zeros(length(app.separatorFields))};
+
+            for i = 1:length(app.separatorFields)
+                separatorValues{i} = app.separatorFields(i).Value;
+            end
+
+            % run separator
+            processedImage = app.separator.separate(app.Image.ImageSource, separatorValues);
+
+            % show separator result
+            app.ProcessedImage.ImageSource = processedImage;
+            app.ProcessedImage.Visible = "on";
+
+            % change active tab
+            app.TabGroup.SelectedTab = app.ProcessedImageTab;
+
+            %%%%%%%%%%%%%%%% recognizer %%%%%%%%%%%%%%%%
+
+            % get values for recognizer
+            recognizerValues = {zeros(length(app.recognizerFields))};
+
+            for i = 1:length(app.recognizerFields)
+                recognizerValues{i} = app.recognizerFields(i).Value;
+            end
+
+            % run recognizer
+            resultText = app.recognizer.recognize(4, recognizerValues);
+
+            % show separator result
+            app.TextArea.Value = resultText;
+
+            % change active tab
+            app.TabGroup.SelectedTab = app.TextTab;
+
         end
 
 
         % Button pushed function: ChooseFileButton
         function loadImageFile(app, event)
-            allowedExtensions = {'*.png';'*.jpg';'*.jpeg'};
+            % load file
+            loadfilepath = loadFileFromUser(app, {'*.png';'*.jpg';'*.jpeg'});
 
-            % get file from user
-            file = uigetfile(allowedExtensions);
-
-            % user clicked cancel
-            if file == 0
+            if loadfilepath == 0
+                % file wasn't returned
                 return;
-            end 
-
-            [folder,filename,extension] = fileparts(file);
-            
-            % if extension is allowed set image
-            if any(strcmp(allowedExtensions, append("*", extension)))
-                app.Image.ImageSource = file;
-                app.Image.Visible = 'on';
-            else
-                uialert(app.UIFigure,"File type not supported.","Invalid file type");
             end
+            
+            % set image
+            app.Image.ImageSource = loadfilepath;
+            app.Image.Visible = 'on';
         end
 
 
         % Menu selected function: SaveTextToFileMenu
         function saveTextToFile(app, event)
             % get file path
-            savefilePath = askForSaveFilePath(app);
+            savefilepath = askForSaveFilePath(app);
             
             if savefilepath == ""
                 % user clicked cancel
@@ -108,7 +137,7 @@ classdef AppUI_exported_ver1 < matlab.apps.AppBase
 
             % save text to file
             text = app.TextArea.Value;
-            file = fopen(savefilePath,'w');
+            file = fopen(savefilepath,'w');
 
             for row = 1:length(text)
                 fprintf(file, '%s\n', text{row,:});
@@ -130,35 +159,114 @@ classdef AppUI_exported_ver1 < matlab.apps.AppBase
 
             % save parameters to file
             file = fopen(savefilepath,'w');
+            fields = cat(2, app.separatorFields, app.recognizerFields);
 
-            for i = 1:length(app.separatorFields)
-                fprintf(file, '%s=%s\n', app.separatorFields(i).Tag, getFieldValue(app, app.separatorFields(i)));
-            end
-            for i = 1:length(app.recognizerFields)
-                fprintf(file, '%s=%s\n', app.recognizerFields(i).Tag, getFieldValue(app, app.recognizerFields(i)));
+            for i = 1:length(fields)
+                fprintf(file, '%s=%s\n', fields(i).Tag, getFieldStringValue(app, fields(i)));
             end
 
             fclose(file);
         end
 
 
+        % Menu selected function: LoadParametersFromFileMenu
+        function loadParametersFromFile(app, event)
+            % load file
+            loadfilepath = loadFileFromUser(app, {'*.txt'});
 
-        function value = getFieldValue(app, field)
+            if loadfilepath == 0
+                % file wasn't returned
+                return;
+            end
+
+            % read file and set parameters
+            file = fopen(loadfilepath,'r');
+            
+            line = fgetl(file);
+            while ischar(line)
+                tagAndValue = strsplit(line, '=');
+                setParameter(app, tagAndValue{1}, tagAndValue{2});
+
+                line = fgetl(file);
+            end
+
+            fclose(file);
+        end
+
+        function setParameter(app, tag, stringValue)
+            fields = cat(2, app.separatorFields, app.recognizerFields);
+            
+            for i = 1:length(fields)
+                if strcmp(tag, fields(i).Tag)
+                    switch class(fields(i))
+                        case 'matlab.ui.control.Slider'
+                            fields(i).Value = str2double(stringValue);
+        
+                        case 'matlab.ui.control.DropDown'
+                            fields(i).Value = stringValue;
+        
+                        case 'matlab.ui.control.CheckBox'
+                            if stringValue == "true"
+                                fields(i).Value = 1;
+                            else
+                                fields(i).Value = 0;
+                            end
+        
+                        case 'matlab.ui.control.NumericEditField'
+                            fields(i).Value = str2double(stringValue);
+        
+                        case 'matlab.ui.control.RangeSlider'
+                            bothValuesAsStrings = strsplit(stringValue);
+                            fields(i).Value(1) = str2double(bothValuesAsStrings{1}(2:end));
+                            fields(i).Value(2) = str2double(bothValuesAsStrings{2}(1:end-1));
+                    end
+
+                    return;
+                end
+            end
+        end
+
+
+        function loadfilepath = loadFileFromUser(app, allowedExtensions)
+            % get file from user
+            [filename, folder] = uigetfile(allowedExtensions);
+
+            if filename == 0
+                % user clicked cancel
+                loadfilepath = 0;
+                return;
+            end
+
+            % get loaded file extension
+            temp = strsplit(filename, '.'); % chaining parenthesis is not supported...
+            extension = append('*.', temp{2});
+
+            % if extension is allowed return file
+            if any(strcmp(allowedExtensions, extension))
+                loadfilepath = append(folder, filename);
+            else
+                loadfilepath = 0;
+                uialert(app.UIFigure,"File type not supported.","Invalid file type");
+            end
+        end
+
+
+        function stringValue = getFieldStringValue(app, field)
             switch class(field)
                 case 'matlab.ui.control.Slider'
-                    value = string(field.Value);
+                    stringValue = sprintf('%.4f', field.Value);
 
                 case 'matlab.ui.control.DropDown'
-                    value = string(field.Value);  
+                    stringValue = string(field.Value);
 
                 case 'matlab.ui.control.CheckBox'
-                    value = string(field.Value);
+                    stringValue = string(field.Value);
 
                 case 'matlab.ui.control.NumericEditField'
-                    value = sprintf('%11.4g', field.Value);
+                    stringValue = sprintf('%.4f', field.Value);
 
                 case 'matlab.ui.control.RangeSlider'
-                    value = sprintf('[%f %f]', field.Value(1), field.Value(2));
+                    stringValue = sprintf('[%.1f %.1f]', field.Value(1), field.Value(2));
             end
         end
 
@@ -207,6 +315,11 @@ classdef AppUI_exported_ver1 < matlab.apps.AppBase
             app.SaveParametersToFileMenu = uimenu(app.FileMenu);
             app.SaveParametersToFileMenu.MenuSelectedFcn = createCallbackFcn(app, @saveParametersToFile, true);
             app.SaveParametersToFileMenu.Text = 'Zapisz parametry';
+
+            % Create LoadParametersFromFileMenu
+            app.LoadParametersFromFileMenu = uimenu(app.FileMenu);
+            app.LoadParametersFromFileMenu.MenuSelectedFcn = createCallbackFcn(app, @loadParametersFromFile, true);
+            app.LoadParametersFromFileMenu.Text = 'Wczytaj parametry';
 
             % Create MainGridLayout
             app.MainGridLayout = uigridlayout(app.UIFigure);
@@ -269,7 +382,6 @@ classdef AppUI_exported_ver1 < matlab.apps.AppBase
             app.TextArea = uitextarea(app.TextHolder);
             app.TextArea.Layout.Row = 1;
             app.TextArea.Layout.Column = 1;
-            app.TextArea.Value = {'some read text'};
 
             % Create ImageWithTextTab
             app.ImageWithTextTab = uitab(app.TabGroup);
@@ -516,6 +628,7 @@ classdef AppUI_exported_ver1 < matlab.apps.AppBase
             app.EditField.Layout.Row = 14;
             app.EditField.Layout.Column = 2;
             app.EditField.Tag = 'tagEditField';
+            app.EditField.ValueDisplayFormat = '%.4f';
 
             % Create DoubleSliderLabel
             app.DoubleSliderLabel = uilabel(app.OptionsGridLayout);
@@ -537,6 +650,8 @@ classdef AppUI_exported_ver1 < matlab.apps.AppBase
             % choose which field values will be given to methods
             app.separatorFields = [app.Slider1 app.Slider2 app.DropDown app.CheckBox];
             app.recognizerFields = [app.Slider3 app.Slider4 app.EditField app.DoubleSlider];
+            % be careful not to add the same field to both arrays or you'll
+            % start overriding each other
         end
     end
 
