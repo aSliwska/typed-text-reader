@@ -1,19 +1,14 @@
 classdef TextSeparator
     methods(Static)
-        function [imresult, imbin] = preprocess(image, agresjaFiltrowania, agresjaMergeowania)
+        function imresult = preprocess(image, agresja)
 
         % Przenieś obraz na odcienie szarości
         im = rgb2gray(image) ;
-        
-        
 
-        agresjaFiltrowania = ceil(agresjaFiltrowania{1} / 100 * 5);
+        agresja = ceil(agresja{1} / 100 * 5);
         
         % Odszumianie w dziedzinie obrazu skali szarości
-        im = medfilt2(im);
-
-        % figure;
-        % imshow(edges)
+        % im = medfilt2(im);
         
         % figure
         % imshow(im)
@@ -26,39 +21,38 @@ classdef TextSeparator
         
         % Wstępne odszumianie i usuwanie artefaktów
         im = imclearborder(im);
-        im = imopen(im, ones(agresjaFiltrowania));
-        im = imclose(im, ones(agresjaFiltrowania));
+        im = imopen(im, ones(agresja));
+        im = imclose(im, ones(agresja));
         % im = medfilt2(im);
-
         
+        % Mocniejsze odszumianie z użyciem regionprops
         
-        % Regionprops do ustalenia parametrów liter
-        
-        props = regionprops(im,'BoundingBox');
-        S = cat(1, props.BoundingBox);
-
-        meanH = round(mean(S(:,4)));
-
-        im = imclose(im, ones(round(meanH * (agresjaMergeowania / 100))));
-
-        imbin = im;
-
-        % figure
-        % imshow(imbin);
-
-        
+        % props = regionprops(im,'Area');
+        % S = cat(1, props.Area);
+        % 
+        % meanS = mean(S);
+        % stdev = std(S);
+        % 
+        % label = bwlabel(im);
+        % 
+        % for i = 1:max(label, [], 'all')
+        %     a = regionprops(label == i, 'Area');
+        %     if abs(a.Area - meanS) / stdev > 1
+        %         label(label==i) = 0;
+        %     end
+        % end
+        % 
+        % im = (label > 0);
         
         % figure
         % imshow(im)
 
         % Wydobycie paragrafów tekstu z obrazka (nowy parametr?)
 
-        thick = bwmorph(im, 'thicken', meanH);
+        thick = bwmorph(, 'thicken', 5);
         thick = imfill(thick, "holes");
-        thick = imclose(thick, ones(meanH));
+        thick = imclose(thick, ones(5));
         thick = imfill(thick, "holes");
-
-        
         
         imresult = thick;
         
@@ -223,8 +217,8 @@ classdef TextSeparator
             end
 
             
-            figure
-            imshow(label2rgb(compositedLetters,'jet','black','shuffle'));
+            % figure
+            % imshow(label2rgb(compositedLetters,'jet','black','shuffle'));
 
             % Teraz trzeba coś zrobić z kropkami
 
@@ -257,7 +251,7 @@ classdef TextSeparator
 
             % Przekaż obraz do algorytmu odszumiającego, parametr określa
             % agresję odszumiania
-            [imParagraphs, imBinary] = TextSeparator.preprocess(im, separatorValues(1,1), slider2_value);
+            thick = TextSeparator.preprocess(im, separatorValues(1,1));
 
             
 
@@ -266,10 +260,10 @@ classdef TextSeparator
             % figure;
             % imshow(thick)
 
-            % figure
-            % imshow(imParagraphs);
+            figure
+            imshow(thick);
 
-            boxes = cat(1,regionprops(imParagraphs, 'BoundingBox').BoundingBox);
+            boxes = cat(1,regionprops(thick, 'BoundingBox').BoundingBox);
       
             % figure;
             
@@ -277,14 +271,10 @@ classdef TextSeparator
             paragraph = 1;
             
             % Wytnij paragraf
-            im2 = imcrop(imBinary, boxes(paragraph, :));
+            im2 = imcrop(imfiltered, boxes(paragraph, :));
 
             % Przetwarza jeden paragraf tekstu, przyjmuje obraz binarny
             % jako wejscie
-
-            % figure
-            % imshow(im2);
-
             improcess = TextSeparator.paragraphProcess(im2);
 
             % define return value (should probably return this and a 2d array 
