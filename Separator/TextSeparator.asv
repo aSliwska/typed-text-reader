@@ -81,7 +81,7 @@ classdef TextSeparator
         
         end
 
-        function [linesimout, letterArray, letterFlags] = paragraphProcess(paragraphImage)
+        function [linesimout, letterArray] = paragraphProcess(paragraphImage)
             
             l = bwlabel(paragraphImage);
             
@@ -191,7 +191,6 @@ classdef TextSeparator
             boxes = cat(1,regionprops(linesorig, 'BoundingBox').BoundingBox);
             
             compositedLetters = zeros(size(linesfull));
-            compositedFlags = [];
 
             letterLabel = 1;
 
@@ -217,16 +216,12 @@ classdef TextSeparator
 
                 lineprops = regionprops(lineim, 'BoundingBox', 'Image', 'Centroid');
                 letterboxes = cat(1,lineprops.BoundingBox);
+ 
 
-                
-                % Projekcja na os x, mniej-więcej odnajduje granice slow
-                lwidth = mean(letterboxes(:,3));
                 projection = max(lineim > 0);
-                projection = imclose(projection, true(1,floor(lwidth/1.25)));
-                projection = bwlabel(bwmorph(projection, "thicken",inf));
+                imclose(projection, )
 
-                word = projection(1);
-
+                return;
 
 
 
@@ -236,28 +231,15 @@ classdef TextSeparator
 
                 for letter = 1:max(lineim, [], "all")
 
-
-
                     % Przygotowujemy obrazek
                     % Szerokość litery
                     % Wysokość linii
                     % Osadzony na y linii, x litery w linii + x linii
                     letterboxLocal = letterboxes(letter, :);
                     letterbox = letterboxLocal;
-
-                    if (projection(floor(letterbox(1)+1)) ~= word)
-                        word = projection(floor(letterbox(1)+1));
-                        compositedFlags(end + 1) = 1;
-                    else
-                        compositedFlags(end + 1) = 0;
-                    end
-
-
                     letterbox(1) = floor(letterbox(1) + linebox(1));
                     letterbox(2) = floor(linebox(2));
                     letterbox(4) = linebox(4);
-
-                    
 
                     letterImage = imcrop(linesorig, letterbox) + imcrop(dfilt, letterbox);
                     letterImage = letterImage > 0;
@@ -273,10 +255,9 @@ classdef TextSeparator
                     % linevect(:, end + 1) = [letterLabel ; centroids(letter, 1)];
                     letterLabel = letterLabel + 1;
                 end
-               
-            end
 
-            
+
+            end
 
 
             text = {};
