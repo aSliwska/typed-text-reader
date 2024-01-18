@@ -79,7 +79,7 @@ classdef AppUI_exported_ver1 < matlab.apps.AppBase
             end
 
             % run separator
-            processedImage = app.separator.separate(app.Image.ImageSource, separatorValues);
+            [processedImage, paragraphs] = app.separator.separate(app.Image.ImageSource, separatorValues);
 
             % show separator result
             app.ProcessedImage.ImageSource = processedImage;
@@ -97,8 +97,10 @@ classdef AppUI_exported_ver1 < matlab.apps.AppBase
                 recognizerValues{i} = app.recognizerFields(i).Value;
             end
 
+            % paragraphs{1}
+
             % run recognizer
-            resultText = app.recognizer.recognize(4, recognizerValues);
+            resultText = app.recognizer.recognize(paragraphs, recognizerValues);
 
             % show separator result
             app.TextArea.Value = resultText;
