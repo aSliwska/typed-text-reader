@@ -424,12 +424,10 @@ classdef TextSeparator
 
             for i = 1:size(boxes, 1)
 
-                sprintf("Paragraph: %d", i);
-
-                paragraph = 1;
+                sprintf("Paragraph: %d", i)
                 
                 % Wytnij paragraf
-                im2 = imcrop(imBinary, boxes(paragraph, :));
+                im2 = imcrop(imBinary, boxes(i, :));
 
                 % Przetwarza jeden paragraf tekstu, przyjmuje obraz binarny
                 % jako wejscie
@@ -440,13 +438,14 @@ classdef TextSeparator
                 paragraph.images = letterArray;
                 paragraph.flags = letterFlags;
 
-                paragraphData{end + 1} = paragraph;
+                paragraph
 
+                paragraphData{end + 1} = paragraph;
                 
 
             end
 
-            % paragraphData{1}
+            paragraphData
 
 
             % define return value (should probably return this and a 2d array 
