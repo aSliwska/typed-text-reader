@@ -5,13 +5,13 @@ classdef TextSeparator
         % Przenieś obraz na odcienie szarości
         im = rgb2gray(image) ;
 
-        if (agresjaFiltrowania < 20)
-            agresjaFiltrowania = 20;
+        if (agresjaFiltrowania < 5)
+            agresjaFiltrowania = 5;
         end
         
         
 
-        agresjaFiltrowania = ceil(agresjaFiltrowania / 100 * 5);
+        agresjaFiltrowania = ceil(agresjaFiltrowania / 100 * 4);
 
         
         % Odszumianie w dziedzinie obrazu skali szarości
@@ -26,7 +26,7 @@ classdef TextSeparator
         % imshow(im)
         
         % Progowanie adaptacyjne daje lepsze wyniki dla zanieczyszczonego tekstu
-        T = adaptthresh(im, 0.8);
+        T = adaptthresh(im, 0.9);
         im = ~imbinarize(im,T);
 
 
@@ -36,6 +36,7 @@ classdef TextSeparator
         im = imopen(im, ones(agresjaFiltrowania));
         im = imclose(im, ones(agresjaFiltrowania));
         % im = medfilt2(im);
+        im = imclearborder(im);
 
         % figure
         % imshow(im)
@@ -49,11 +50,12 @@ classdef TextSeparator
 
         meanH = round(mean(S(:,4)));
 
-        mergeCoeff = round(2 * meanH * (agresjaMergeowania / 100));
+        mergeCoeff = round(meanH * (agresjaMergeowania / 100));
 
         if (mergeCoeff > 1)
             im = imclose(im, ones());
         end
+
 
         
 
@@ -71,8 +73,10 @@ classdef TextSeparator
 
         thick = bwmorph(im, 'thicken', round(meanH / 2));
         thick = imfill(thick, "holes");
-        thick = imclose(thick, ones(round(meanH / 2)));
+        thick = imclose(thick, ones(round(meanH)));
         thick = imfill(thick, "holes");
+
+        thick = imclearborder(thick);
 
         
         
@@ -207,13 +211,13 @@ classdef TextSeparator
 
             for line = 1:max(linesorig, [], "all")
 
+                
+
                 lineim = imcrop(linesorig, boxes(line, :));
                 lineim = bwlabel(lineim);
 
                 linebox = boxes(line, :);
                 
-                % figure
-                % imshow(label2rgb(lineim,'jet','black','shuffle'));
 
                 lineprops = regionprops(lineim, 'BoundingBox', 'Image', 'Centroid');
                 letterboxes = cat(1,lineprops.BoundingBox);
@@ -278,81 +282,88 @@ classdef TextSeparator
 
             
 
-
-            text = {};
-
             % Mamy wszystkie fajne literki, teraz trzeba je przekonwertowac
             % do obrazu ktory zrozumie siec neuronowa
+
 
             letters = regionprops(compositedLetters, 'Image', 'BoundingBox');
             letterboxes = cat(1,letters.BoundingBox);
 
-            maxWidth = max(letterboxes(:,3), [], 'all');
-            maxHeight = max(letterboxes(:,4), [], 'all');
-
-            maxDimension = ceil(2 * max([maxWidth, maxHeight], [], "all"));
-
             letterimages = {};
 
-            for i = 1:max(compositedLetters, [], 'all')
-                processedLetter = letters(i).Image > 0;
-
-                letterMold = zeros(maxDimension);
+            if (size(letterboxes, 2) > 0) % Tylko jeżeli w paragrafie znaleźliśmy cokolwiek
+                maxWidth = max(letterboxes(:,3), [], 'all');
+                maxHeight = max(letterboxes(:,4), [], 'all');
+    
+                maxDimension = ceil(1.25 * max([maxWidth, maxHeight], [], "all"));
+    
                 
-                sizes = size(processedLetter);
-                %letterProp = regionprops(processedLetter,
-                %'Centroid').Centroid; Centroidy daja gorsze wyniki
-                letterProp = sizes ./ 2;
+    
+                for i = 1:5 %max(compositedLetters, [], 'all')
+                    processedLetter = letters(i).Image > 0;
+    
+                    letterMold = zeros(maxDimension);
+                    
+                    sizes = size(processedLetter);
+                    %letterProp = regionprops(processedLetter,
+                    %'Centroid').Centroid; Centroidy daja gorsze wyniki
+                    letterProp = sizes ./ 2;
+    
+                    dx =  floor(maxDimension / 2 - letterProp(1));
+                    dy = floor(maxDimension / 2 - letterProp(2));
+                    
+                    dx=min(max(dx,1),inf);
+                    dy=min(max(dy,1),inf);
+                   
+    
+                    rangerows = dx:(dx + sizes(1) - 1);
+                    rangecols = dy:(dy + sizes(2) - 1);
+    
+                    letterMold(rangerows, rangecols) = processedLetter;
+    
+                    
+    
+                    % Przed chwilą wycentrowaliśmy literę na kwadracie, teraz
+                    % trzeba ją przeskalować
+                    
+                    letterMold = double(~letterMold);
+                    letterMold = imresize(letterMold, [32,32]);
 
-                dx =  floor(maxDimension / 2 - letterProp(1));
-                dy = floor(maxDimension / 2 - letterProp(2));
-                
-                dx=min(max(dx,1),inf);
-                dy=min(max(dy,1),inf);
-               
-
-                rangerows = dx:(dx + sizes(1) - 1);
-                rangecols = dy:(dy + sizes(2) - 1);
-
-                letterMold(rangerows, rangecols) = processedLetter;
-
-                % figure
-                % imshow(letterMold)
-
-                % Przed chwilą wycentrowaliśmy literę na kwadracie, teraz
-                % trzeba ją przeskalować
-                
-                letterMold = double(~letterMold);
-                letterMold = imresize(letterMold, [32,32]);
-
-                letterimages{end + 1} = letterMold;
-
-                % figure
-                % imshow()
+                    imwrite(letterMold, strcat(num2str(i), ".png"))
+    
+                    letterimages{end + 1} = letterMold;
+    
+                    % figure
+                    % imshow()
+                end
             end
 
 
             % Kod do debugowania programu
 
-            % resultstring = "";
-            % 
-            % figure
-            % 
+            resultstring = "";
+
+            %figure
+
             % for i = 1:size(letterimages,2)
-            %     lett = ocr(letterimages{i},LayoutAnalysis="block",CharacterSet="QWERTYUIOPLKJHGFDSAZXCVBNMqwertyuioplkjhgfdsazxcvbnm0123456789")
-            %     imshow(letterimages{i})
+            %     lett = ocr(letterimages{i},LayoutAnalysis="block",CharacterSet="QWERTYUIOPLKJHGFDSAZXCVBNMqwertyuioplkjhgfdsazxcvbnm0123456789");
+            %     %figure
+            %     %imshow(letterimages{i});
+            %     if (compositedFlags(i) == 1)
+            %         resultstring = append(resultstring, " ");
+            %     end
             %     resultstring = append(resultstring, strtrim(lett.Text));
             % end
-            % 
-            % sprintf("Result: %s", resultstring)
+
+            sprintf("Result: %s", resultstring)
 
             
             % figure
             % imshow(letterimages {3})
             % size(letterimages {3})
             
-            figure
-            imshow(label2rgb(compositedLetters,'jet','black','shuffle'));
+            % figure
+            % imshow(label2rgb(compositedLetters,'jet','black','shuffle'));
 
 
             linesimout = label2rgb(compositedLetters,'jet','black','shuffle');
@@ -386,6 +397,9 @@ classdef TextSeparator
             % Przekaż obraz do algorytmu odszumiającego, parametr określa
             % agresję odszumiania
             [imParagraphs, imBinary] = TextSeparator.preprocess(im, slider1_value, slider2_value);
+
+            % figure
+            % imshow(imParagraphs)
 
             
 
