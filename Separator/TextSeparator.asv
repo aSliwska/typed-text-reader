@@ -299,7 +299,7 @@ classdef TextSeparator
     
                 
     
-                for i = 1:5 %max(compositedLetters, [], 'all')
+                for i = 1:max(compositedLetters, [], 'all')
                     processedLetter = letters(i).Image > 0;
     
                     letterMold = zeros(maxDimension);
@@ -414,7 +414,7 @@ classdef TextSeparator
             % imshow(imParagraphs);
 
             boxes = cat(1,regionprops(imParagraphs, 'BoundingBox').BoundingBox);
-            
+
       
             % figure;
             
@@ -422,12 +422,12 @@ classdef TextSeparator
 
             paragraphData = [];
 
-            for i = 1:size(max(imParagraphs, [], "all")
+            for i = 1:size(boxes, 1)
 
-                paragraph = 1;
+                sprintf("Paragraph: %d", i)
                 
                 % Wytnij paragraf
-                im2 = imcrop(imBinary, boxes(paragraph, :));
+                im2 = imcrop(imBinary, boxes(i, :));
 
                 % Przetwarza jeden paragraf tekstu, przyjmuje obraz binarny
                 % jako wejscie
@@ -438,11 +438,17 @@ classdef TextSeparator
                 paragraph.images = letterArray;
                 paragraph.flags = letterFlags;
 
+                paragraph
+
                 paragraphData{end + 1} = paragraph;
+
+                return
 
                 
 
             end
+
+            paragraphData
 
 
             % define return value (should probably return this and a 2d array 
