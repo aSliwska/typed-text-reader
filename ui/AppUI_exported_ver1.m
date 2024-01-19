@@ -70,7 +70,7 @@ classdef AppUI_exported_ver1 < matlab.apps.AppBase
             app.SegmentationResultImage.ImageSource = cat(3, layer, layer, layer);
             app.SegmentationResultImage.Visible = "on";
 
-            app.BiggestParagraphImage.ImageSource = label2rgb(compositedLetters,'jet','black','shuffle');
+            app.BiggestParagraphImage.ImageSource = compositedLetters; % Composited juz ma labele
             app.BiggestParagraphImage.Visible = "on";
 
             layer = image3*255; % jak nie binarny to wyrzuc *255
@@ -529,7 +529,7 @@ classdef AppUI_exported_ver1 < matlab.apps.AppBase
             app.AdditionalDenoisingLabel.HorizontalAlignment = 'center';
             app.AdditionalDenoisingLabel.Layout.Row = 5;
             app.AdditionalDenoisingLabel.Layout.Column = 1;
-            app.AdditionalDenoisingLabel.Text = 'Dodatkowe odszumianie';
+            app.AdditionalDenoisingLabel.Text = 'Dodatkowa segmentacja';
 
             % Create AdditionalDenoisingCheckBox
             app.AdditionalDenoisingCheckBox = uicheckbox(app.OptionsGridLayout);
