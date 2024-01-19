@@ -86,37 +86,28 @@ function [imresult, imbin] = preprocess(image, agresjaFiltrowania, agresjaMergeo
         meanWidths = mean(widths);
         devWidths = std(widths);
         outlier = (widths - meanWidths)./ devWidths;
-        outlier = (outlier > 1.5);
+        outlier = (outlier > 1.25);
+
+        outlier
 
         for i = 1:size(outlier,1)
             if (outlier(i) == 1)
-
+                
                 box = boxes(i,:);
                 originalImageSample = rgb2gray(imcrop(image, box));
 
-                filtSize = ceil(size(originalImageSample,2));
+                filtSize = ceil(size(originalImageSample,2)/1.25);
 
                 if (mod(filtSize,2) == 0)
                     filtSize = filtSize - 1;
                 end
 
-                T = adaptthresh(originalImageSample, 0.95, 'NeighborhoodSize', filtSize);
+                T = adaptthresh(originalImageSample, 0.8, 'NeighborhoodSize', filtSize);
                 originalImageSample = ~imbinarize(originalImageSample,T);
 
                 originalImageSample = imopen(originalImageSample, ones(agresjaFiltrowania));
 
-
-
-                startingX = ceil(box(2));
-                startingY = ceil(box(1));
-
-                widthX = startingX + size(originalImageSample, 1) - 1;
-                widthY = startingY + size(originalImageSample, 2) - 1;
-
-                originalImageSample = imclose(originalImageSample, ones(mergeCoeff));
-
-
-                im(startingX:widthX, startingY:widthY) = bwmorph(originalImageSample, "thicken", mergeCoeff);
+                starting = ceil(box(1));
 
                 % figure
                 % imshow(originalImageSample)
@@ -124,11 +115,6 @@ function [imresult, imbin] = preprocess(image, agresjaFiltrowania, agresjaMergeo
             end
 
         end
-
-        im = im > 0;
-
-        % Wieloznaki po części wyfiltrowane, do szukania bardziej
-        % wyrafinowanych przypadków potrzebna byłaby sieć neuronowa
 
 
 
@@ -157,6 +143,8 @@ function [imresult, imbin] = preprocess(image, agresjaFiltrowania, agresjaMergeo
         thick = imfill(thick, "holes");
 
         thick = imclearborder(thick);
+
+        return;
         
         imresult = thick;
         

@@ -60,19 +60,29 @@ classdef TextSeparator
 
                 % Przetwarza jeden paragraf tekstu, przyjmuje obraz binarny
                 % jako wejscie
+
+                try
+                    [improcess, letterArray, letterFlags] = paragraphProcess(im2);
+
+                    if (i == 1)
+                        resultImage = improcess;
+                        % imshow(resultImage);
+                    end
     
-                [improcess, letterArray, letterFlags] = paragraphProcess(im2);
+                    paragraph = {};
+                    paragraph.images = letterArray;
+                    paragraph.flags = letterFlags;
+    
+                    paragraphData{end + 1} = paragraph;
 
-                if (i == 1)
-                    resultImage = improcess;
-                    imshow(resultImage);
+                catch ME
+                    figure
+                    imshow(im2)
+                    ME
+
                 end
-
-                paragraph = {};
-                paragraph.images = letterArray;
-                paragraph.flags = letterFlags;
-
-                paragraphData{end + 1} = paragraph;
+    
+                
                 
 
             end
