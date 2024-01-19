@@ -1,4 +1,4 @@
-function [imresult, imbin] = preprocess(image, agresjaFiltrowania, agresjaMergeowania)
+function [imresult, imbin] = preprocess(image, agresjaFiltrowania, agresjaMergeowania, czuloscSegmentacji, dodatkowaSegmentacja)
 
         close all
 
@@ -77,63 +77,67 @@ function [imresult, imbin] = preprocess(image, agresjaFiltrowania, agresjaMergeo
         
         im = bwlabel(im > 0);
 
-        props = regionprops(im, 'BoundingBox');
-        boxes = cat(1, props.BoundingBox);
-        widths = cat(1, props.BoundingBox);
-        widths = widths(:, 3);
-
-
-        meanWidths = mean(widths);
-        devWidths = std(widths);
-        outlier = (widths - meanWidths)./ devWidths;
-        outlier = (outlier > 1.5);
-
-        for i = 1:size(outlier,1)
-            if (outlier(i) == 1)
-
-                box = boxes(i,:);
-                originalImageSample = rgb2gray(imcrop(image, box));
-
-                filtSize = ceil(size(originalImageSample,2));
-
-                if (mod(filtSize,2) == 0)
-                    filtSize = filtSize - 1;
+        if (dodatkowaSegmentacja == 1)
+            props = regionprops(im, 'BoundingBox');
+            boxes = cat(1, props.BoundingBox);
+            widths = cat(1, props.BoundingBox);
+            widths = widths(:, 3);
+    
+    
+            meanWidths = mean(widths);
+            devWidths = std(widths);
+            outlier = (widths - meanWidths)./ devWidths;
+            outlier = (outlier > 1.5);
+    
+            for i = 1:size(outlier,1)
+                if (outlier(i) == 1)
+    
+                    box = boxes(i,:);
+                    originalImageSample = rgb2gray(imcrop(image, box));
+    
+                    filtSize = ceil(size(originalImageSample,2));
+    
+                    if (mod(filtSize,2) == 0)
+                        filtSize = filtSize - 1;
+                    end
+    
+                    T = adaptthresh(originalImageSample, 0.95, 'NeighborhoodSize', filtSize);
+                    originalImageSample = ~imbinarize(originalImageSample,T);
+    
+                    originalImageSample = imopen(originalImageSample, ones(agresjaFiltrowania));
+    
+    
+    
+                    startingX = ceil(box(2));
+                    startingY = ceil(box(1));
+    
+                    widthX = startingX + size(originalImageSample, 1) - 1;
+                    widthY = startingY + size(originalImageSample, 2) - 1;
+    
+                    originalImageSample = imclose(originalImageSample, ones(mergeCoeff));
+    
+    
+                    im(startingX:widthX, startingY:widthY) = bwmorph(originalImageSample, "thicken", mergeCoeff);
+    
+                    % figure
+                    % imshow(originalImageSample)
+    
                 end
-
-                T = adaptthresh(originalImageSample, 0.95, 'NeighborhoodSize', filtSize);
-                originalImageSample = ~imbinarize(originalImageSample,T);
-
-                originalImageSample = imopen(originalImageSample, ones(agresjaFiltrowania));
-
-
-
-                startingX = ceil(box(2));
-                startingY = ceil(box(1));
-
-                widthX = startingX + size(originalImageSample, 1) - 1;
-                widthY = startingY + size(originalImageSample, 2) - 1;
-
-                originalImageSample = imclose(originalImageSample, ones(mergeCoeff));
-
-
-                im(startingX:widthX, startingY:widthY) = bwmorph(originalImageSample, "thicken", mergeCoeff);
-
-                % figure
-                % imshow(originalImageSample)
-
+    
             end
-
+    
+            im = im > 0;
         end
 
-        im = im > 0;
+        
 
         % Wieloznaki po części wyfiltrowane, do szukania bardziej
         % wyrafinowanych przypadków potrzebna byłaby sieć neuronowa
 
 
 
-        figure
-        imshow(im);
+        % figure
+        % imshow(im);
 
 
         imbin = im;

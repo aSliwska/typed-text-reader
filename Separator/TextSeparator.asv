@@ -72,7 +72,7 @@ classdef TextSeparator
 
             % define return value
             segmentationResult = imBinary; 
-            compositedLetters = largestParagraph;
+            compositedLetters = largestParagraph > 2;
             image3 = imbinarize(rgb2gray(originalImage)); 
             paragraphs = paragraphData;
 
