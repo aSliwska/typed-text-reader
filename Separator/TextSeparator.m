@@ -8,26 +8,19 @@ classdef TextSeparator
 
 
     methods
-        function [resultImage, paragraphs] = separate(obj, originalImage, separatorValues)
+        function [segmentationResult, compositedLetters, image3, paragraphs] = separate(obj, originalImage, separatorValues)
             
-            % if something goes wrong you'll get zeros 
-            % in the separatorValues cell array (but it shouldn't lol)
+            % if something goes wrong you'll get zeros here
+            denoiseLevel = separatorValues{1};
+            letterMergeLevel = separatorValues{2};
+            segmentationLevel = separatorValues{3};
+            slider4Value = separatorValues{4};
+            needsAdditionalDenoising = separatorValues{5};
 
-            % for now it'll be easier for you to edit what you get if you
-            % get a whole cell array, but once you tell me exactly what fields
-            % you'd like to have, then you won't have to map like this:
-
-            slider1_value = separatorValues{1};
-            slider2_value = separatorValues{2};
-            dropdown_value = separatorValues{3};
-            checkbox_value = separatorValues{4};
-
-
-            im = imread(originalImage);
 
             % Przekaż obraz do algorytmu odszumiającego, parametr określa
             % agresję odszumiania
-            [imParagraphs, imBinary] = preprocess(im, slider1_value, slider2_value);
+            [imParagraphs, imBinary] = preprocess(originalImage, denoiseLevel, letterMergeLevel);
 
             % figure
             % imshow(imParagraphs)
@@ -53,7 +46,7 @@ classdef TextSeparator
 
             for i = 1:size(boxes, 1)
 
-                sprintf("Paragraph: %d", i)
+                % sprintf("Paragraph: %d", i)
                 
                 % Wytnij paragraf
                 im2 = imcrop(imBinary, boxes(i, :));
@@ -78,13 +71,12 @@ classdef TextSeparator
             end
 
 
-            % define return value (should probably return this and a 2d array 
-            % of letter images?)
-            % resultImage = improcess;
+            % define return value
+            segmentationResult = imbinarize(rgb2gray(originalImage)); 
+            compositedLetters = bwlabel(imbinarize(rgb2gray(originalImage)));
+            image3 = imbinarize(rgb2gray(originalImage)); 
             paragraphs = paragraphData;
 
-
-            
         end
     end
 end
