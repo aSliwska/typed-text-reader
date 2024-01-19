@@ -72,10 +72,14 @@ classdef TextSeparator
                 paragraph.images = letterArray;
                 paragraph.flags = letterFlags;
 
+                paragraph
+
                 paragraphData{end + 1} = paragraph;
                 
 
             end
+
+            paragraphData
 
 
             % define return value (should probably return this and a 2d array 

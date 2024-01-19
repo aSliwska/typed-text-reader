@@ -1,9 +1,8 @@
 function [linesimout, letterArray, letterFlags] = paragraphProcess(paragraphImage)
             
             l = bwlabel(paragraphImage);
-            
-            % figure
-            % imshow(im2);
+
+           
 
             % Szukamy kropek, kropki są be
             areasUnfiltered = regionprops(paragraphImage, 'Area');
@@ -129,27 +128,24 @@ function [linesimout, letterArray, letterFlags] = paragraphProcess(paragraphImag
                 lineim = imcrop(linesorig, boxes(line, :));
                 lineim = bwlabel(lineim);
 
+                
+
                 linebox = boxes(line, :);
                 
 
-                lineprops = regionprops(lineim, 'BoundingBox', 'Image', 'Centroid');
+                lineprops = regionprops(lineim, 'BoundingBox');
                 letterboxes = cat(1,lineprops.BoundingBox);
 
                 
-                % Projekcja na os x, mniej-więcej odnajduje granice slow
-                lwidth = mean(letterboxes(:,3));
+                % Projekcja liter na os x, mniej-więcej odnajduje granice slow
+                lwidth = mean(letterboxes(:,3)); % Srednia szerokosc litery
+
                 projection = max(lineim > 0);
                 projection = imclose(projection, true(1,floor(lwidth/1.25)));
                 projection = bwlabel(bwmorph(projection, "thicken",inf));
 
                 word = projection(1);
 
-
-
-
-                % centroids = cat(1,lineprops.Centroid);
-
-                % linevect = [];
 
                 for letter = 1:max(lineim, [], "all")
 
@@ -159,8 +155,7 @@ function [linesimout, letterArray, letterFlags] = paragraphProcess(paragraphImag
                     % Szerokość litery
                     % Wysokość linii
                     % Osadzony na y linii, x litery w linii + x linii
-                    letterboxLocal = letterboxes(letter, :);
-                    letterbox = letterboxLocal;
+                    letterbox = letterboxes(letter, :);
 
                     if (projection(floor(letterbox(1)+1)) ~= word)
                         word = projection(floor(letterbox(1)+1));
@@ -176,14 +171,15 @@ function [linesimout, letterArray, letterFlags] = paragraphProcess(paragraphImag
 
                     
 
-                    letterImage = imcrop(linesorig, letterbox) + imcrop(dfilt, letterbox);
-                    letterImage = letterImage > 0;
+                    letterImage = (imcrop(linesorig, letterbox) > 0) + (imcrop(dfilt, letterbox) > 0);
                     letterImage = letterImage * letterLabel;
 
                     cols = letterbox(1):(letterbox(1) + letterbox(3));
                     rows = letterbox(2):(letterbox(2) + letterbox(4));
 
                     compositedLetters(rows,cols) = letterImage;
+
+
                     
                     % figure
                     % imshow(letterImage)
