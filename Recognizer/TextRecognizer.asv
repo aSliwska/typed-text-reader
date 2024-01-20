@@ -1,8 +1,7 @@
 classdef TextRecognizer
     methods
         function resultText = recognize(obj, paragraphs, recognizerValues)
-            extractedLines = [""];
-            textArray = "";
+            extractedLines = [];
 
             
             for j = 1:numel(paragraphs)
@@ -27,17 +26,15 @@ classdef TextRecognizer
                     textArray = strcat(textArray, predictedChar);
                     % disp(flags(i));
                     if (flags(i) == 2)
-                        extractedLines(end + 1) = textArray;
+                        extractedLines(end + 1) = textArray
                         textArray="";
                     end
                        
                 end
-                extractedLines(end + 1) = textArray;
-                textArray="";
+                textArray = strcat(textArray, newline);
             end
             % Zwróć wynik
-            extractedLines
-            resultText = extractedLines;
+            resultText = textArray;
         end
     end
 end
