@@ -7,12 +7,12 @@ classdef TextSeparator
             letterMergeLevel = separatorValues{2};
             segmentationLevel = separatorValues{3};
             slider4Value = separatorValues{4};
-            needsAdditionalDenoising = separatorValues{5};
+            needsAdditionalSegmentation = separatorValues{5};
 
 
             % Przekaż obraz do algorytmu odszumiającego, parametr określa
             % agresję odszumiania
-            [imParagraphs, imBinary] = preprocess(originalImage, denoiseLevel, letterMergeLevel, segmentationLevel, needsAdditionalDenoising);
+            [imParagraphs, imBinary] = preprocess(originalImage, denoiseLevel, letterMergeLevel, segmentationLevel, needsAdditionalSegmentation);
 
             % figure
             % imshow(imParagraphs)

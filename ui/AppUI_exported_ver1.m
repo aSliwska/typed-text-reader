@@ -12,8 +12,8 @@ classdef AppUI_exported_ver1 < matlab.apps.AppBase
         OptionsGridLayout               matlab.ui.container.GridLayout
         DenoiseLevelSlider              matlab.ui.control.Slider
         DenoiseLevelLabel               matlab.ui.control.Label
-        AdditionalDenoisingLabel        matlab.ui.control.Label
-        AdditionalDenoisingCheckBox     matlab.ui.control.CheckBox
+        AdditionalSegmentationLabel     matlab.ui.control.Label
+        AdditionalSegmentationCheckBox  matlab.ui.control.CheckBox
         Slider4                         matlab.ui.control.Slider
         Slider4Label                    matlab.ui.control.Label
         SegmentationLevelSlider         matlab.ui.control.Slider
@@ -26,16 +26,16 @@ classdef AppUI_exported_ver1 < matlab.apps.AppBase
         TabGroup                        matlab.ui.container.TabGroup
         OriginalImageTab                matlab.ui.container.Tab
         OriginalImageHolder             matlab.ui.container.GridLayout
-        OriginalImage                   matlab.ui.control.Image
+        OriginalImage                   matlab.ui.control.UIAxes
         SegmentationResultTab           matlab.ui.container.Tab
         SegmentationResultHolder        matlab.ui.container.GridLayout
-        SegmentationResultImage         matlab.ui.control.Image
+        SegmentationResultImage         matlab.ui.control.UIAxes
         BiggestParagraphTab             matlab.ui.container.Tab
         BiggestParagraphHolder          matlab.ui.container.GridLayout
-        BiggestParagraphImage           matlab.ui.control.Image
-        Tab3                            matlab.ui.container.Tab
-        TabImage3Holder                 matlab.ui.container.GridLayout
-        Image3                          matlab.ui.control.Image
+        BiggestParagraphImage           matlab.ui.control.UIAxes
+        FoundTextLinesTab               matlab.ui.container.Tab
+        FoundTextLinesHolder            matlab.ui.container.GridLayout
+        FoundTextLinesImage             matlab.ui.control.UIAxes
         TextTab                         matlab.ui.container.Tab
         TextHolder                      matlab.ui.container.GridLayout
         TextArea                        matlab.ui.control.TextArea
@@ -53,6 +53,13 @@ classdef AppUI_exported_ver1 < matlab.apps.AppBase
         % Button pushed function: GenerateButton
         function generateText(app, event)
 
+            % if no image has been set by user
+            try
+                imhandles(app.OriginalImage).CData;
+            catch
+                return;
+            end
+
             %%%%%%%%%%%%%%%% separator %%%%%%%%%%%%%%%%
 
             % get values for separator
@@ -63,19 +70,14 @@ classdef AppUI_exported_ver1 < matlab.apps.AppBase
             end
 
             % run separator
-            [segmentationResult, compositedLetters, image3, paragraphs] = app.separator.separate(app.OriginalImage.ImageSource, separatorValues);
+            [segmentationResult, compositedLetters, foundTextLines, paragraphs] = app.separator.separate(imhandles(app.OriginalImage).CData, separatorValues);
 
             % show separator result
-            layer = segmentationResult*255;
-            app.SegmentationResultImage.ImageSource = cat(3, layer, layer, layer);
-            app.SegmentationResultImage.Visible = "on";
+            showImage(app, app.SegmentationResultImage, segmentationResult);
 
-            app.BiggestParagraphImage.ImageSource = compositedLetters; % Composited juz ma labele
-            app.BiggestParagraphImage.Visible = "on";
+            showImage(app, app.BiggestParagraphImage, compositedLetters);
 
-            % layer = image3*255; % jak nie binarny to wyrzuc *255 zrobione :)
-            app.Image3.ImageSource = image3;
-            app.Image3.Visible = "on";
+            showImage(app, app.FoundTextLinesImage, foundTextLines);
 
             % change active tab
             app.TabGroup.SelectedTab = app.SegmentationResultTab;
@@ -115,15 +117,20 @@ classdef AppUI_exported_ver1 < matlab.apps.AppBase
                 im = imread(loadfilepath);
                 rgb2gray(im);
                 if ndims(im) == 3
-                    % set image
-                    app.OriginalImage.ImageSource = im;
-                    app.OriginalImage.Visible = 'on';
+                    showImage(app, app.OriginalImage, im);
                 else
                     throw E;
                 end
             catch E
                 uialert(app.UIFigure,"Plik musi być 3 wymiarowym obrazem.","Niepoprawny plik");
             end
+        end
+
+
+        function showImage(app, axes, image)
+            imshow(image, 'Parent', axes);
+            axes.XLim = [-inf inf];
+            axes.YLim = [-inf inf];
         end
 
 
@@ -207,7 +214,7 @@ classdef AppUI_exported_ver1 < matlab.apps.AppBase
                         case 'matlab.ui.control.DropDown'
                             fields(i).Value = stringValue;
         
-                        case 'matlab.ui.control.AdditionalDenoisingCheckBox'
+                        case 'matlab.ui.control.AdditionalSegmentationCheckBox'
                             if stringValue == "true"
                                 fields(i).Value = 1;
                             else
@@ -261,7 +268,7 @@ classdef AppUI_exported_ver1 < matlab.apps.AppBase
                 case 'matlab.ui.control.DropDown'
                     stringValue = string(field.Value);
 
-                case 'matlab.ui.control.AdditionalDenoisingCheckBox'
+                case 'matlab.ui.control.AdditionalSegmentationCheckBox'
                     stringValue = string(field.Value);
 
                 case 'matlab.ui.control.NumericEditField'
@@ -301,7 +308,7 @@ classdef AppUI_exported_ver1 < matlab.apps.AppBase
 
             % Create UIFigure and hide until all components are created
             app.UIFigure = uifigure('Visible', 'off');
-            app.UIFigure.Position = [100 100 970 600];
+            app.UIFigure.Position = [100 100 1000 600];
             app.UIFigure.Name = 'AO Projekt - J. Kawka, D. Kokot, K. Duda, A. Śliwska';
 
             % Create FileMenu
@@ -347,11 +354,18 @@ classdef AppUI_exported_ver1 < matlab.apps.AppBase
             app.OriginalImageHolder.Scrollable = 'on';
 
             % Create OriginalImage
-            app.OriginalImage = uiimage(app.OriginalImageHolder);
+            app.OriginalImage = uiaxes(app.OriginalImageHolder);
+            app.OriginalImage.Toolbar.Visible = 'off';
+            title(app.OriginalImage, []);
+            xlabel(app.OriginalImage, []);
+            ylabel(app.OriginalImage, []);
+            app.OriginalImage.XAxis.TickLabels = {};
+            app.OriginalImage.YAxis.TickLabels = {};
             app.OriginalImage.Layout.Row = 1;
             app.OriginalImage.Layout.Column = 1;
-            app.OriginalImage.ImageSource = 255*ones(1,1,3);
-            app.OriginalImage.Visible = 'off';
+            pan(app.OriginalImage, 'on');
+            zoom(app.OriginalImage, 'on');
+            app.OriginalImage.Visible = "off";
 
 
             % Create SegmentationResultTab
@@ -366,11 +380,18 @@ classdef AppUI_exported_ver1 < matlab.apps.AppBase
             app.SegmentationResultHolder.Scrollable = 'on';
 
             % Create SegmentationResultImage
-            app.SegmentationResultImage = uiimage(app.SegmentationResultHolder);
+            app.SegmentationResultImage = uiaxes(app.SegmentationResultHolder);
+            app.SegmentationResultImage.Toolbar.Visible = 'off';
+            title(app.SegmentationResultImage, []);
+            xlabel(app.SegmentationResultImage, []);
+            ylabel(app.SegmentationResultImage, []);
+            app.SegmentationResultImage.XAxis.TickLabels = {};
+            app.SegmentationResultImage.YAxis.TickLabels = {};
             app.SegmentationResultImage.Layout.Row = 1;
             app.SegmentationResultImage.Layout.Column = 1;
-            app.SegmentationResultImage.ImageSource = 255*ones(1,1,3);
-            app.SegmentationResultImage.Visible = 'off';
+            pan(app.SegmentationResultImage, 'on');
+            zoom(app.SegmentationResultImage, 'on');
+            app.SegmentationResultImage.Visible = "off";
 
 
             % Create BiggestParagraphTab
@@ -385,30 +406,44 @@ classdef AppUI_exported_ver1 < matlab.apps.AppBase
             app.BiggestParagraphHolder.Scrollable = 'on';
 
             % Create BiggestParagraphImage
-            app.BiggestParagraphImage = uiimage(app.BiggestParagraphHolder);
+            app.BiggestParagraphImage = uiaxes(app.BiggestParagraphHolder);
+            app.BiggestParagraphImage.Toolbar.Visible = 'off';
+            title(app.BiggestParagraphImage, []);
+            xlabel(app.BiggestParagraphImage, []);
+            ylabel(app.BiggestParagraphImage, []);
+            app.BiggestParagraphImage.XAxis.TickLabels = {};
+            app.BiggestParagraphImage.YAxis.TickLabels = {};
             app.BiggestParagraphImage.Layout.Row = 1;
             app.BiggestParagraphImage.Layout.Column = 1;
-            app.BiggestParagraphImage.ImageSource = 255*ones(1,1,3);
-            app.BiggestParagraphImage.Visible = 'off';
+            pan(app.BiggestParagraphImage, 'on');
+            zoom(app.BiggestParagraphImage, 'on');
+            app.BiggestParagraphImage.Visible = "off";
 
 
-            % Create Tab3
-            app.Tab3 = uitab(app.TabGroup);
-            app.Tab3.Title = 'Odszukane linie tekstu';
+            % Create FoundTextLinesTab
+            app.FoundTextLinesTab = uitab(app.TabGroup);
+            app.FoundTextLinesTab.Title = 'Odszukane linie tekstu';
 
-            % Create TabImage3Holder
-            app.TabImage3Holder = uigridlayout(app.Tab3);
-            app.TabImage3Holder.ColumnWidth = {'1x'};
-            app.TabImage3Holder.RowHeight = {'1x'};
-            app.TabImage3Holder.Padding = [0 0 0 0];
-            app.TabImage3Holder.Scrollable = 'on';
+            % Create FoundTextLinesHolder
+            app.FoundTextLinesHolder = uigridlayout(app.FoundTextLinesTab);
+            app.FoundTextLinesHolder.ColumnWidth = {'1x'};
+            app.FoundTextLinesHolder.RowHeight = {'1x'};
+            app.FoundTextLinesHolder.Padding = [0 0 0 0];
+            app.FoundTextLinesHolder.Scrollable = 'on';
 
-            % Create Image3
-            app.Image3 = uiimage(app.TabImage3Holder);
-            app.Image3.Layout.Row = 1;
-            app.Image3.Layout.Column = 1;
-            app.Image3.ImageSource = 255*ones(1,1,3);
-            app.Image3.Visible = 'off';
+            % Create FoundTextLinesImage
+            app.FoundTextLinesImage = uiaxes(app.FoundTextLinesHolder);
+            app.FoundTextLinesImage.Toolbar.Visible = 'off';
+            title(app.FoundTextLinesImage, []);
+            xlabel(app.FoundTextLinesImage, []);
+            ylabel(app.FoundTextLinesImage, []);
+            app.FoundTextLinesImage.XAxis.TickLabels = {};
+            app.FoundTextLinesImage.YAxis.TickLabels = {};
+            app.FoundTextLinesImage.Layout.Row = 1;
+            app.FoundTextLinesImage.Layout.Column = 1;
+            pan(app.FoundTextLinesImage, 'on');
+            zoom(app.FoundTextLinesImage, 'on');
+            app.FoundTextLinesImage.Visible = "off";
 
 
             % Create TextTab
@@ -425,8 +460,6 @@ classdef AppUI_exported_ver1 < matlab.apps.AppBase
             app.TextArea = uitextarea(app.TextHolder);
             app.TextArea.Layout.Row = 1;
             app.TextArea.Layout.Column = 1;
-
-
 
 
             % Create RightPanelGridLayout
@@ -525,26 +558,26 @@ classdef AppUI_exported_ver1 < matlab.apps.AppBase
             app.Slider4.Layout.Column = 2;
             app.Slider4.Tag = 'tagSlider4';
 
-            % Create AdditionalDenoisingLabel
-            app.AdditionalDenoisingLabel = uilabel(app.OptionsGridLayout);
-            app.AdditionalDenoisingLabel.HorizontalAlignment = 'center';
-            app.AdditionalDenoisingLabel.Layout.Row = 5;
-            app.AdditionalDenoisingLabel.Layout.Column = 1;
-            app.AdditionalDenoisingLabel.Text = 'Dodatkowa segmentacja';
+            % Create AdditionalSegmentationLabel
+            app.AdditionalSegmentationLabel = uilabel(app.OptionsGridLayout);
+            app.AdditionalSegmentationLabel.HorizontalAlignment = 'center';
+            app.AdditionalSegmentationLabel.Layout.Row = 5;
+            app.AdditionalSegmentationLabel.Layout.Column = 1;
+            app.AdditionalSegmentationLabel.Text = 'Dodatkowa segmentacja';
 
-            % Create AdditionalDenoisingCheckBox
-            app.AdditionalDenoisingCheckBox = uicheckbox(app.OptionsGridLayout);
-            app.AdditionalDenoisingCheckBox.Text = '';
-            app.AdditionalDenoisingCheckBox.Layout.Row = 5;
-            app.AdditionalDenoisingCheckBox.Layout.Column = 2;
-            app.AdditionalDenoisingCheckBox.Tag = 'tagAdditionalDenoisingCheckBox';
+            % Create AdditionalSegmentationCheckBox
+            app.AdditionalSegmentationCheckBox = uicheckbox(app.OptionsGridLayout);
+            app.AdditionalSegmentationCheckBox.Text = '';
+            app.AdditionalSegmentationCheckBox.Layout.Row = 5;
+            app.AdditionalSegmentationCheckBox.Layout.Column = 2;
+            app.AdditionalSegmentationCheckBox.Tag = 'tagAdditionalSegmentationCheckBox';
 
 
             % Show the figure after all components are created
             app.UIFigure.Visible = 'on';
 
             % choose which field values will be given to methods
-            app.separatorFields = [app.DenoiseLevelSlider app.LetterMergeLevelSlider app.SegmentationLevelSlider app.Slider4 app.AdditionalDenoisingCheckBox];
+            app.separatorFields = [app.DenoiseLevelSlider app.LetterMergeLevelSlider app.SegmentationLevelSlider app.Slider4 app.AdditionalSegmentationCheckBox];
             app.recognizerFields = [];
         end
     end
