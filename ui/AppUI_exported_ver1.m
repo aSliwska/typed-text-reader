@@ -73,8 +73,8 @@ classdef AppUI_exported_ver1 < matlab.apps.AppBase
             app.BiggestParagraphImage.ImageSource = compositedLetters; % Composited juz ma labele
             app.BiggestParagraphImage.Visible = "on";
 
-            layer = image3*255; % jak nie binarny to wyrzuc *255
-            app.Image3.ImageSource = cat(3, layer, layer, layer);
+            % layer = image3*255; % jak nie binarny to wyrzuc *255 zrobione :)
+            app.Image3.ImageSource = image3;
             app.Image3.Visible = "on";
 
             % change active tab
@@ -394,7 +394,7 @@ classdef AppUI_exported_ver1 < matlab.apps.AppBase
 
             % Create Tab3
             app.Tab3 = uitab(app.TabGroup);
-            app.Tab3.Title = 'Tab3';
+            app.Tab3.Title = 'Odszukane linie tekstu';
 
             % Create TabImage3Holder
             app.TabImage3Holder = uigridlayout(app.Tab3);

@@ -1,4 +1,4 @@
-function [linesimout, letterArray, letterFlags] = paragraphProcess(paragraphImage)
+function [linesimout, letterArray, letterFlags, linedebug] = paragraphProcess(paragraphImage)
             
             l = bwlabel(paragraphImage);
 
@@ -41,7 +41,7 @@ function [linesimout, letterArray, letterFlags] = paragraphProcess(paragraphImag
             properties = regionprops(labels, 'Centroid', 'BoundingBox');
            
             heights = cat(1,properties.BoundingBox);
-            avgHeights = ceil(mean(heights(:,4)) / 2);
+            avgHeights = ceil(mean(heights(:,4)) / 2.5);
             
             % Musimy operowac na liczbach calkowitych
             yInts = round(cat(1,properties.Centroid));
@@ -69,6 +69,7 @@ function [linesimout, letterArray, letterFlags] = paragraphProcess(paragraphImag
             end
 
             linesorig = k;
+            linedebug = label2rgb(k,'jet','black','shuffle');
             
             
             % Grupujemy kropki do linii, kropka wskakuje do linii w której
@@ -211,7 +212,7 @@ function [linesimout, letterArray, letterFlags] = paragraphProcess(paragraphImag
                 maxWidth = max(letterboxes(:,3), [], 'all');
                 maxHeight = max(letterboxes(:,4), [], 'all');
     
-                maxDimension = ceil(1.25 * max([maxWidth, maxHeight], [], "all"));
+                maxDimension = ceil(1.5 * max([maxWidth, maxHeight], [], "all"));
     
                 
     
