@@ -146,10 +146,8 @@ function [linesimout, letterArray, letterFlags] = paragraphProcess(paragraphImag
 
                 word = projection(1);
 
-                lastletter = max(lineim, [], "all");
 
-
-                for letter = 1:lastletter
+                for letter = 1:max(lineim, [], "all")
 
 
 
@@ -159,17 +157,18 @@ function [linesimout, letterArray, letterFlags] = paragraphProcess(paragraphImag
                     % Osadzony na y linii, x litery w linii + x linii
                     letterbox = letterboxes(letter, :);
 
+                    flag = {};
+                    flag.space = 0;
+                    flag.newline = 0;
 
                     if (projection(floor(letterbox(1)+1)) ~= word)
                         word = projection(floor(letterbox(1)+1));
                         compositedFlags(end + 1) = 1;
                     else
-                        compositedFlags(end + 1) = 0;
+                         = 0;
                     end
 
-                    if (letter == lastletter)
-                        compositedFlags(end) = 2;
-                    end
+                    compositedFlags(end + 1)
 
 
                     letterbox(1) = floor(letterbox(1) + linebox(1));
@@ -253,6 +252,8 @@ function [linesimout, letterArray, letterFlags] = paragraphProcess(paragraphImag
                     % imshow()
                 end
             end
+
+            compositedFlags
 
             letterFlags = compositedFlags;
 
