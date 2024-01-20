@@ -1,5 +1,5 @@
 # Ustaw ścieżkę do katalogu, w którym chcesz przeszukać pliki
-$sciezkaDoKatalogu = "C:\Users\admin\Desktop\studia\Semestr 5\AO\projekt\typed-text-reader\Projekt_nnLettersRecognizer\images"
+$sciezkaDoKatalogu = ""
 
 # Użyj Get-ChildItem do pobrania wszystkich plików w katalogu
 $pliki = Get-ChildItem -Path $sciezkaDoKatalogu
