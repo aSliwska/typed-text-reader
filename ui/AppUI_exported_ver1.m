@@ -513,6 +513,7 @@ classdef AppUI_exported_ver1 < matlab.apps.AppBase
             app.DenoiseLevelSlider.MinorTicks = [0 5 10 15 20 25 30 35 40 45 50 55 60 65 70 75 80 85 90 95 100];
             app.DenoiseLevelSlider.Layout.Row = 1;
             app.DenoiseLevelSlider.Layout.Column = 2;
+            app.DenoiseLevelSlider.Value = 5;
             app.DenoiseLevelSlider.Tag = 'tagDenoiseLevelSlider';
 
             % Create LetterMergeLevelLabel
