@@ -73,8 +73,8 @@ classdef AppUI_exported_ver1 < matlab.apps.AppBase
             app.BiggestParagraphImage.ImageSource = compositedLetters; % Composited juz ma labele
             app.BiggestParagraphImage.Visible = "on";
 
-            layer = image3*255; % jak nie binarny to wyrzuc *255
-            app.Image3.ImageSource = cat(3, layer, layer, layer);
+            % layer = image3*255; % jak nie binarny to wyrzuc *255 zrobione :)
+            app.Image3.ImageSource = image3;
             app.Image3.Visible = "on";
 
             % change active tab
@@ -394,7 +394,7 @@ classdef AppUI_exported_ver1 < matlab.apps.AppBase
 
             % Create Tab3
             app.Tab3 = uitab(app.TabGroup);
-            app.Tab3.Title = 'Tab3';
+            app.Tab3.Title = 'Odszukane linie tekstu';
 
             % Create TabImage3Holder
             app.TabImage3Holder = uigridlayout(app.Tab3);
@@ -501,12 +501,13 @@ classdef AppUI_exported_ver1 < matlab.apps.AppBase
             app.SegmentationLevelLabel.HorizontalAlignment = 'center';
             app.SegmentationLevelLabel.Layout.Row = 3;
             app.SegmentationLevelLabel.Layout.Column = 1;
-            app.SegmentationLevelLabel.Text = 'Czułość segmentacji obrazu';
+            app.SegmentationLevelLabel.Text = 'Czułość segmentacji słów';
 
             % Create SegmentationLevelSlider
             app.SegmentationLevelSlider = uislider(app.OptionsGridLayout);
             app.SegmentationLevelSlider.MinorTicks = [0 5 10 15 20 25 30 35 40 45 50 55 60 65 70 75 80 85 90 95 100];
             app.SegmentationLevelSlider.Layout.Row = 3;
+            app.SegmentationLevelSlider.Value = 15;
             app.SegmentationLevelSlider.Layout.Column = 2;
             app.SegmentationLevelSlider.Tag = 'tagSegmentationLevelSlider';
 

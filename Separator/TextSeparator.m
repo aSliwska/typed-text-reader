@@ -37,6 +37,7 @@ classdef TextSeparator
             paragraphData = [];
 
             largestParagraph = ones(25);
+            largestLines = ones(25);
 
             for i = 1:size(boxes, 1)
 
@@ -49,11 +50,12 @@ classdef TextSeparator
                 % jako wejscie
 
                 try
-                    [improcess, letterArray, letterFlags] = paragraphProcess(im2);
+                    [improcess, letterArray, letterFlags, lines] = paragraphProcess(im2, segmentationLevel);
 
 
                     if (size(improcess,2) > size(largestParagraph, 2) && size(improcess, 1) > size(largestParagraph, 1))
                         largestParagraph = improcess;
+                        largestLines = lines;
                     end
     
                     paragraph = {};
@@ -73,7 +75,7 @@ classdef TextSeparator
             % define return value
             segmentationResult = imBinary; 
             compositedLetters = largestParagraph;
-            image3 = imbinarize(rgb2gray(originalImage)); 
+            image3 = largestLines; 
             paragraphs = paragraphData;
 
         end

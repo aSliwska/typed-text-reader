@@ -1,4 +1,4 @@
-function [linesimout, letterArray, letterFlags] = paragraphProcess(paragraphImage)
+function [linesimout, letterArray, letterFlags, linedebug] = paragraphProcess(paragraphImage, wordSeparation)
             
             l = bwlabel(paragraphImage);
 
@@ -13,7 +13,7 @@ function [linesimout, letterArray, letterFlags] = paragraphProcess(paragraphImag
             
             outlier = (areasUnfiltered - avgArea)./ Areadev; % Znak jest nam potrzebny, bo innym rodzajem artefaktu są wieloznaki!!
             
-            t = -1.5; % Metodad NaOkowa
+            t = -1.5; % Metoda NaOkowa
 
             % Find zwraca indeksy elementow ktore sa niezerowe
             outidx = find(outlier < t);
@@ -69,6 +69,7 @@ function [linesimout, letterArray, letterFlags] = paragraphProcess(paragraphImag
             end
 
             linesorig = k;
+            linedebug = label2rgb(k,'jet','black','shuffle');
             
             
             % Grupujemy kropki do linii, kropka wskakuje do linii w której
@@ -141,7 +142,10 @@ function [linesimout, letterArray, letterFlags] = paragraphProcess(paragraphImag
                 lwidth = mean(letterboxes(:,3)); % Srednia szerokosc litery
 
                 projection = max(lineim > 0);
-                projection = imclose(projection, true(1,floor(lwidth/1.25)));
+
+                mergingCoeff = wordSeparation/100;
+
+                projection = imclose(projection, true(1,floor(lwidth/(1 + mergingCoeff))));
                 projection = bwlabel(bwmorph(projection, "thicken",inf));
 
                 word = projection(1);
@@ -253,6 +257,8 @@ function [linesimout, letterArray, letterFlags] = paragraphProcess(paragraphImag
                     % imshow()
                 end
             end
+
+            
 
             letterFlags = compositedFlags;
 
