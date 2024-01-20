@@ -7,12 +7,12 @@ classdef TextSeparator
             letterMergeLevel = separatorValues{2};
             segmentationLevel = separatorValues{3};
             slider4Value = separatorValues{4};
-            needsAdditionalDenoising = separatorValues{5};
+            needsAdditionalSegmentation = separatorValues{5};
 
 
             % Przekaż obraz do algorytmu odszumiającego, parametr określa
             % agresję odszumiania
-            [imParagraphs, imBinary] = preprocess(originalImage, denoiseLevel, letterMergeLevel, segmentationLevel, needsAdditionalDenoising);
+            [imParagraphs, imBinary] = preprocess(originalImage, denoiseLevel, letterMergeLevel, segmentationLevel, needsAdditionalSegmentation);
 
             % figure
             % imshow(imParagraphs)
@@ -37,6 +37,7 @@ classdef TextSeparator
             paragraphData = [];
 
             largestParagraph = ones(25);
+            largestLines = ones(25);
 
             for i = 1:size(boxes, 1)
 
@@ -49,11 +50,12 @@ classdef TextSeparator
                 % jako wejscie
 
                 try
-                    [improcess, letterArray, letterFlags] = paragraphProcess(im2);
+                    [improcess, letterArray, letterFlags, lines] = paragraphProcess(im2, segmentationLevel);
 
 
                     if (size(improcess,2) > size(largestParagraph, 2) && size(improcess, 1) > size(largestParagraph, 1))
                         largestParagraph = improcess;
+                        largestLines = lines;
                     end
     
                     paragraph = {};
@@ -73,7 +75,7 @@ classdef TextSeparator
             % define return value
             segmentationResult = imBinary; 
             compositedLetters = largestParagraph;
-            image3 = imbinarize(rgb2gray(originalImage)); 
+            image3 = largestLines; 
             paragraphs = paragraphData;
 
         end
