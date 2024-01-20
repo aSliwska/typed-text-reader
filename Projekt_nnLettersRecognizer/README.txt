@@ -1,0 +1,1 @@
+Tu jest kod do przygotowania modelu sieci na podstawie obrazów 32x32 .png w folderze `images`.
