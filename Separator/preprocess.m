@@ -9,28 +9,25 @@ function [imresult, imbin] = preprocess(image, agresjaFiltrowania, agresjaMergeo
         im = imadjust(im);
         
         % Progowanie adaptacyjne daje lepsze wyniki dla zanieczyszczonego tekstu
-        T = adaptthresh(im, 0.85, 'NeighborhoodSize', 55);
+        T = adaptthresh(im, 0.85, 'NeighborhoodSize', 65);
         im = ~imbinarize(im,T);
 
 
         % Odszumianie
         
-        agresjaFiltrowania = ceil(agresjaFiltrowania / 100 * 4);
+        agresjaFiltrowania = ceil(agresjaFiltrowania / 100 * 10);
 
    
         % Wstępne odszumianie i usuwanie artefaktów
         im = imclearborder(im);
 
         if (agresjaFiltrowania > 1)
-            im = imclose(im, ones(agresjaFiltrowania));
             im = imopen(im, ones(agresjaFiltrowania));
             im = medfilt2(im);
         end
 
         im = imclearborder(im);
 
-
-        
         
         % Regionprops do ustalenia parametrów liter
 
@@ -38,9 +35,7 @@ function [imresult, imbin] = preprocess(image, agresjaFiltrowania, agresjaMergeo
         props = regionprops(im,'BoundingBox', 'Area');
        
         S = cat(1, props.BoundingBox);
-
-
-
+        meanH = round(mean(S(:,4)));
 
         % Filtr zanieczyszczen - usuwa obszary o polu znacznie mniejszym od
         % pola sredniej litery, kropki srednio nie wchodza w ta kategorie
@@ -50,10 +45,8 @@ function [imresult, imbin] = preprocess(image, agresjaFiltrowania, agresjaMergeo
         outlier = (P - meanP)./ devP;
         outidx = find(outlier < -2.5);
         im(ismember(im,outidx)) = 0;
+        
         im = (im > 0);
-
-
-        meanH = round(mean(S(:,4)));
 
         mergeCoeff = round(meanH / 4 * (agresjaMergeowania / 100));
 
@@ -68,7 +61,7 @@ function [imresult, imbin] = preprocess(image, agresjaFiltrowania, agresjaMergeo
         
         
 
-        if (dodatkowaSegmentacja == 1 && agresjaMergeowania > 1 && agresjaFiltrowania > 1)
+        if (dodatkowaSegmentacja == 1)
             im = bwlabel(im > 0);
             props = regionprops(im, 'BoundingBox');
             boxes = cat(1, props.BoundingBox);
@@ -94,7 +87,7 @@ function [imresult, imbin] = preprocess(image, agresjaFiltrowania, agresjaMergeo
     
                     T = adaptthresh(originalImageSample, 0.95, 'NeighborhoodSize', filtSize);
                     originalImageSample = ~imbinarize(originalImageSample,T);
-    
+
                     originalImageSample = imopen(originalImageSample, ones(agresjaFiltrowania));
     
     
@@ -105,10 +98,11 @@ function [imresult, imbin] = preprocess(image, agresjaFiltrowania, agresjaMergeo
                     widthX = startingX + size(originalImageSample, 1) - 1;
                     widthY = startingY + size(originalImageSample, 2) - 1;
     
-                    originalImageSample = imclose(originalImageSample, ones(mergeCoeff));
+                    originalImageSample = imclose(originalImageSample, ones(2));
+                    originalImageSample = bwmorph(originalImageSample, "thicken", mergeCoeff);
     
     
-                    im(startingX:widthX, startingY:widthY) = bwmorph(originalImageSample, "thicken", mergeCoeff);
+                    im(startingX:widthX, startingY:widthY) = originalImageSample;
     
                     % figure
                     % imshow(originalImageSample)
