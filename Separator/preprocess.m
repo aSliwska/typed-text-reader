@@ -75,9 +75,10 @@ function [imresult, imbin] = preprocess(image, agresjaFiltrowania, agresjaMergeo
         % przeprowadzić na tych obszarach segmentację (aby np. pozbyć się
         % wieloznaków, nie wszystkich ale części)
         
-        im = bwlabel(im > 0);
+        
 
         if (dodatkowaSegmentacja == 1)
+            im = bwlabel(im > 0);
             props = regionprops(im, 'BoundingBox');
             boxes = cat(1, props.BoundingBox);
             widths = cat(1, props.BoundingBox);
@@ -125,11 +126,10 @@ function [imresult, imbin] = preprocess(image, agresjaFiltrowania, agresjaMergeo
                 end
     
             end
-    
-            im = im > 0;
+   
         end
 
-        
+        im = im > 0;
 
         % Wieloznaki po części wyfiltrowane, do szukania bardziej
         % wyrafinowanych przypadków potrzebna byłaby sieć neuronowa
