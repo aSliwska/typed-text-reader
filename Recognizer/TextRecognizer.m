@@ -11,7 +11,7 @@ classdef TextRecognizer
                 load('trainedModel.mat', 'net');
     
                 for i = 1:numel(images)
-                    if (flags(i))
+                    if (flags(i) == 1)
                         textArray = strcat(textArray, " ");
                     end
                     inputImage = images{i};
@@ -23,6 +23,9 @@ classdef TextRecognizer
                     predictedChar = char(str2double(char (predictedLabel)));
                     textArray = strcat(textArray, predictedChar);
                     % disp(flags(i));
+                    if (flags(i) == 2)
+                        textArray = strcat(textArray, newline);
+                    end
                        
                 end
                 textArray = strcat(textArray, newline);
