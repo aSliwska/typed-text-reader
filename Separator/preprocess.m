@@ -5,39 +5,30 @@ function [imresult, imbin] = preprocess(image, agresjaFiltrowania, agresjaMergeo
         % Przenieś obraz na odcienie szarości
         im = rgb2gray(image) ;
 
-        if (agresjaFiltrowania < 5)
-            agresjaFiltrowania = 5;
-        end
-        
-        
-
-        agresjaFiltrowania = ceil(agresjaFiltrowania / 100 * 4);
-
-        
-        % Odszumianie w dziedzinie obrazu skali szarości
-        % im = medfilt2(im);
-
-        % figure;
-        % imshow(edges)
-
+        % Popraw kontrast
         im = imadjust(im);
-        
-        % figure
-        % imshow(im)
         
         % Progowanie adaptacyjne daje lepsze wyniki dla zanieczyszczonego tekstu
         T = adaptthresh(im, 0.85, 'NeighborhoodSize', 55);
         im = ~imbinarize(im,T);
+
+
+        % Odszumianie
         
+        agresjaFiltrowania = ceil(agresjaFiltrowania / 100 * 4);
+
+   
         % Wstępne odszumianie i usuwanie artefaktów
         im = imclearborder(im);
-        im = imclose(im, ones(agresjaFiltrowania));
-        im = imopen(im, ones(agresjaFiltrowania));
-        im = medfilt2(im);
+
+        if (agresjaFiltrowania > 1)
+            im = imclose(im, ones(agresjaFiltrowania));
+            im = imopen(im, ones(agresjaFiltrowania));
+            im = medfilt2(im);
+        end
+
         im = imclearborder(im);
 
-        % figure
-        % imshow(im)
 
         
         
@@ -77,14 +68,13 @@ function [imresult, imbin] = preprocess(image, agresjaFiltrowania, agresjaMergeo
         
         
 
-        if (dodatkowaSegmentacja == 1)
+        if (dodatkowaSegmentacja == 1 && agresjaMergeowania > 1 && agresjaFiltrowania > 1)
             im = bwlabel(im > 0);
             props = regionprops(im, 'BoundingBox');
             boxes = cat(1, props.BoundingBox);
             widths = cat(1, props.BoundingBox);
             widths = widths(:, 3);
-    
-    
+
             meanWidths = mean(widths);
             devWidths = std(widths);
             outlier = (widths - meanWidths)./ devWidths;
