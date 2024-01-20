@@ -11,7 +11,7 @@ classdef TextRecognizer
     
                 % disp(images);
                 % load("trainedModel_11_epochs_advanced.mat", 'net');
-                load('trainedModel.mat', 'net');
+                load('trainedModel_v6_dropout.mat', 'net');
     
                 for i = 1:numel(images)
                     if (flags(i) == 1)

@@ -12,9 +12,10 @@ fontTypes=["PLAIN", "BOLD", "ITALIC"];
 
 % Do tego folderu dodaj wszystkie dliki .ttf czcionek, dla których chcesz
 % wygenerować obrazki
-folderPath='fonts\'
-files = dir(fullfile(folderPath, '*.ttf'));
-
+% folderPath='fonts\'
+% files = dir(fullfile(folderPath, '*.ttf'));
+fonts=["Absyssinica", "consola", "DejaVuSans", "DejaVuSerif", "FreeMono", "FreeSans", "FreeSerif", "Gargi", "Phetsarath", "Rasa", "times", "verdana"];%,"Calibri", "Verdana", "Comic sans", "Times New Roman",...
+    %"Garamond","Sitka Text","Cambria"];
 
 types=["dilate", "normal", "rotateR", "rotateL", "moveR", "moveL", "moveU", "moveD"];
 
@@ -38,26 +39,19 @@ for t_index = 1:numel(types)
         % return;
     end
 
-    for f = 1:length(files)
-        % Wyklucz katalogi '.' i '..'
-        if ~files(f).isdir
-            % Pobierz nazwę pliku bez rozszerzenia
-            [~, fileName, ~] = fileparts(files(f).name);
-
-
-            % Iteruj po letterRange
-            for i = letterRange
-                % Iterate over font types
-                for j = 1:3
-                    % Przygotuj nazwę obrazka
-                    outputPath = fullfile(outputFolder, sprintf('%d_%s_%s_%s.png', i, fileName, fontTypes(j), type));
-
-                    % Wygenerujobrazek
-                    generateLetterImage(char(i), files(f).name, fontSize, imageSize, outputPath, fontTypes(j), type);
-                end
+    for f = 1:length(fonts)
+        % Iteruj po letterRange
+        for i = letterRange
+            % Iterate over font types
+            for j = 1:3
+                % Przygotuj nazwę obrazka
+                outputPath = fullfile(outputFolder, sprintf('%d_%s_%s_%s.png', i, fonts(f), fontTypes(j), type));
+                disp (outputPath);
+                % Wygenerujobrazek
+                generateLetterImage(char(i), fonts(f), fontSize, imageSize, outputPath, fontTypes(j), type);
             end
-
         end
+
     end
 end
 

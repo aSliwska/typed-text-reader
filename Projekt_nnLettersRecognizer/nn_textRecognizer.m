@@ -8,10 +8,10 @@
 
 
 clc; close all; clear;
-addpath("images\");
+addpath("..\Recognizer\Generator\images\");
 
 % Załaduj wszystkie obrazy z folderu images do obiektu imageDatastore
-imgDatastore = imageDatastore('images', 'IncludeSubfolders', true, 'FileExtensions', {'.png'});
+imgDatastore = imageDatastore('..\Recognizer\Generator\images\', 'IncludeSubfolders', true, 'FileExtensions', {'.png'});
 
 % Wydobądź etykiety (etykietą jest wartość liczbowa zawarta w nazwie pliku;
 % tę wartość stanowią wszystkie znaki znajdujące się przed pierwszym
@@ -25,7 +25,7 @@ imgDatastore.Labels = categorical(cellfun(@(filename) extractLabel(filename), im
 
 %Augmentacja
 % Specify data augmentation options
-augmenter = imageDataAugmenter('RandXReflection',true,'RandRotation',[-5,5]);
+augmenter = imageDataAugmenter('RandRotation',[-5,5], 'RandScale',[0.5 1]);
 
 % Create augmented datastores
 augmentedTrainData = augmentedImageDatastore([32 32 1], trainData, ...
@@ -52,71 +52,77 @@ validationData = double(validationData) / 255;
 
 
 
-% Przygotuj dane testowe (wykorzystane do sprawdzenia poprawności
-% wytrenowanego modelu)
+% Przygotuj dane testowe (wykorzystane do sprawdzenia poprawności wytrenowanego modelu)
 % Konwersja do odcieni szarości
 testData = cellfun(@(x) im2gray(imresize(imread(x), [32, 32])), tData.Files, 'UniformOutput', false);
 % Konwersja do tablicy 4D
 testData = cat(4, testData{:});
-% Normalize the pixel values to be in the range [0, 1]
+% Znormalizuj wartości do zakresu [0, 1]
 testData = double(testData) / 255;
 
 
 
-% %%%% ODKOMENTUJ JEŚLI CHCESZ TRENOWAĆ MODEL %%%%%
-% % Dostosowanie hiperparametrów
-% options = trainingOptions('adam', ...
-%     'MaxEpochs', 50, ...
-%     'MiniBatchSize', 128, ...
-%     'InitialLearnRate', 0.001, ...
-%     'Shuffle', 'every-epoch', ...
-%     'ValidationData', {validationData, valData.Labels}, ...
-%     'ValidationFrequency', 10, ...
-%     'Plots', 'training-progress', ...
-%     'CheckpointPath', tempdir, ...
-%     'ExecutionEnvironment', 'auto', ...
-%     'Verbose', false, ...
-%     'LearnRateSchedule', 'piecewise', ...
-%     'LearnRateDropFactor', 0.1, ...
-%     'LearnRateDropPeriod', 10, ...
-%     'GradientThresholdMethod', 'absolute', ...
-%     'GradientThreshold', 0.05, ...
-%     'L2Regularization', 0.01);
-%     % 'OutputFcn', @(info, event)stopIfAccuracyNotImproving(info, event, 5)
-% 
-% 
-% % Architektura sieci
-% layers = [
-%     imageInputLayer([32 32 1])
-% 
-%     convolution2dLayer(3, 16, 'Padding', 'same')
-%     reluLayer()
-%     maxPooling2dLayer(2, 'Stride', 2)
-% 
-%     convolution2dLayer(3, 32, 'Padding', 'same')
-%     reluLayer()
-%     maxPooling2dLayer(2, 'Stride', 2)
-% 
-%     convolution2dLayer(3, 64, 'Padding', 'same')
-%     reluLayer()
-%     maxPooling2dLayer(2, 'Stride', 2)
-% 
-%     flattenLayer()
-% 
-%     fullyConnectedLayer(256)
-%     reluLayer()
-%         dropoutLayer(0.5)
-% 
-%     fullyConnectedLayer(52)
-%     softmaxLayer()
-%     classificationLayer()
-% ];
-% 
-% % Trening sieci
-% net = trainNetwork(imageData, trainData.Labels, layers, options);
-% 
-% % Zapisz wytrenowany model
-% save('trainedModel_v2_dropout.mat', 'net');
+%%%% ODKOMENTUJ JEŚLI CHCESZ TRENOWAĆ MODEL %%%%%
+% Dostosowanie hiperparametrów
+options = trainingOptions('adam', ...
+    'MaxEpochs', 50, ...
+    'MiniBatchSize', 128, ...
+    'InitialLearnRate', 0.001, ...
+    'Shuffle', 'every-epoch', ...
+    'ValidationData', {validationData, valData.Labels}, ...
+    'ValidationFrequency', 10, ...
+    'Plots', 'training-progress', ...
+    'CheckpointPath', tempdir, ...
+    'ExecutionEnvironment', 'auto', ...
+    'Verbose', false, ...
+    'LearnRateSchedule', 'piecewise', ...
+    'LearnRateDropFactor', 0.1, ...
+    'LearnRateDropPeriod', 10, ...
+    'GradientThresholdMethod', 'absolute', ...
+    'GradientThreshold', 0.05, ...
+    'L2Regularization', 0.001);
+    % 'OutputFcn', @(info, event)stopIfAccuracyNotImproving(info, event, 5)
+
+
+% Architektura sieci
+layers = [
+    imageInputLayer([32 32 1])
+
+    convolution2dLayer(3, 16, 'Padding', 'same')
+    batchNormalizationLayer()
+    reluLayer()
+    maxPooling2dLayer(2, 'Stride', 2)
+
+    convolution2dLayer(3, 32, 'Padding', 'same')
+    batchNormalizationLayer()
+    reluLayer()
+    maxPooling2dLayer(2, 'Stride', 2)
+
+    convolution2dLayer(3, 32, 'Padding', 'same')
+    batchNormalizationLayer()
+    reluLayer()
+    maxPooling2dLayer(2, 'Stride', 2)
+
+    flattenLayer()
+
+    fullyConnectedLayer(256)
+
+    % Zapobiegaj za dużym wagom 
+    % fullyConnectedLayer(256, 'WeightLearnRateFactor', 10, 'WeightL2Factor', 1e-4)
+    
+    reluLayer()
+    dropoutLayer(0.5)
+
+    fullyConnectedLayer(52)
+    softmaxLayer()
+    classificationLayer()
+];
+
+% Trening sieci
+net = trainNetwork(imageData, trainData.Labels, layers, options);
+
+% Zapisz wytrenowany model
+save('trainedModel_v6_dropout.mat', 'net');
 
 
 
@@ -124,7 +130,7 @@ testData = double(testData) / 255;
 
 %%%%% SPRAWDŹ POPRAWNOŚĆ MODELU %%%%%
 % Wczytaj wytrenowany model
-load('trainedModel_v2_dropout.mat', 'net');
+load('trainedModel_v6_dropout.mat', 'net');
 tData.Labels = categorical(tData.Labels);
 
 % Wykorzystaj wytrenowany model do określenia etykiet dla zbiory testowego
