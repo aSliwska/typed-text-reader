@@ -50,7 +50,7 @@ classdef TextSeparator
                 % jako wejscie
 
                 try
-                    [improcess, letterArray, letterFlags, lines] = paragraphProcess(im2);
+                    [improcess, letterArray, letterFlags, lines] = paragraphProcess(im2, segmentationLevel);
 
 
                     if (size(improcess,2) > size(largestParagraph, 2) && size(improcess, 1) > size(largestParagraph, 1))

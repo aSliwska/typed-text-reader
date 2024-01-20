@@ -1,4 +1,4 @@
-function [linesimout, letterArray, letterFlags, linedebug] = paragraphProcess(paragraphImage)
+function [linesimout, letterArray, letterFlags, linedebug] = paragraphProcess(paragraphImage, wordSeparation)
             
             l = bwlabel(paragraphImage);
 
@@ -13,7 +13,7 @@ function [linesimout, letterArray, letterFlags, linedebug] = paragraphProcess(pa
             
             outlier = (areasUnfiltered - avgArea)./ Areadev; % Znak jest nam potrzebny, bo innym rodzajem artefaktu są wieloznaki!!
             
-            t = -1.5; % Metodad NaOkowa
+            t = -1.5; % Metoda NaOkowa
 
             % Find zwraca indeksy elementow ktore sa niezerowe
             outidx = find(outlier < t);
@@ -41,7 +41,7 @@ function [linesimout, letterArray, letterFlags, linedebug] = paragraphProcess(pa
             properties = regionprops(labels, 'Centroid', 'BoundingBox');
            
             heights = cat(1,properties.BoundingBox);
-            avgHeights = ceil(mean(heights(:,4)) / 2.5);
+            avgHeights = ceil(mean(heights(:,4)) / 2);
             
             % Musimy operowac na liczbach calkowitych
             yInts = round(cat(1,properties.Centroid));
@@ -142,7 +142,10 @@ function [linesimout, letterArray, letterFlags, linedebug] = paragraphProcess(pa
                 lwidth = mean(letterboxes(:,3)); % Srednia szerokosc litery
 
                 projection = max(lineim > 0);
-                projection = imclose(projection, true(1,floor(lwidth/1.25)));
+
+                mergingCoeff = wordSeparation/100;
+
+                projection = imclose(projection, true(1,floor(lwidth/(1 + mergingCoeff))));
                 projection = bwlabel(bwmorph(projection, "thicken",inf));
 
                 word = projection(1);
@@ -212,7 +215,7 @@ function [linesimout, letterArray, letterFlags, linedebug] = paragraphProcess(pa
                 maxWidth = max(letterboxes(:,3), [], 'all');
                 maxHeight = max(letterboxes(:,4), [], 'all');
     
-                maxDimension = ceil(1.5 * max([maxWidth, maxHeight], [], "all"));
+                maxDimension = ceil(1.25 * max([maxWidth, maxHeight], [], "all"));
     
                 
     
@@ -254,6 +257,8 @@ function [linesimout, letterArray, letterFlags, linedebug] = paragraphProcess(pa
                     % imshow()
                 end
             end
+
+            
 
             letterFlags = compositedFlags;
 
