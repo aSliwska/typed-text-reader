@@ -14,14 +14,9 @@ fontTypes=["PLAIN", "BOLD", "ITALIC"];
 % wygenerować obrazki
 % folderPath='fonts\'
 % files = dir(fullfile(folderPath, '*.ttf'));
-fonts=["Arial"];%,"Calibri", "Verdana", "Comic sans", "Times New Roman",...
+fonts=["Absyssinica", "consola", "DejaVuSans", "DejaVuSerif", "FreeMono", "FreeSans", "FreeSerif", "Gargi", "Phetsarath", "Rasa", "times", "verdana"];%,"Calibri", "Verdana", "Comic sans", "Times New Roman",...
     %"Garamond","Sitka Text","Cambria"];
-% 
-% for i=1:numel(fonts)
-% 
-%     font = java.awt.Font(fonts(i),  java.awt.Font.PLAIN, fontSize);
-% end
-% return;
+
 types=["dilate", "normal", "rotateR", "rotateL", "moveR", "moveL", "moveU", "moveD"];
 
 % Literki A-Z i a-z
