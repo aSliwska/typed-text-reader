@@ -80,7 +80,7 @@ classdef AppUI_exported_ver1 < matlab.apps.AppBase
             showImage(app, app.FoundTextLinesImage, foundTextLines);
 
             % change active tab
-            app.TabGroup.SelectedTab = app.SegmentationResultTab;
+            % app.TabGroup.SelectedTab = app.SegmentationResultTab;
 
 
             %%%%%%%%%%%%%%%% recognizer %%%%%%%%%%%%%%%%
@@ -99,8 +99,16 @@ classdef AppUI_exported_ver1 < matlab.apps.AppBase
             app.TextArea.Value = resultText;
 
             % change active tab
-            app.TabGroup.SelectedTab = app.TextTab;
+            % app.TabGroup.SelectedTab = app.TextTab;
 
+            recolorButton(app);
+
+        end
+
+        function recolorButton(app)
+            set(app.GenerateButton,'Backgroundcolor','#77AC30');
+            pause(0.5);
+            set(app.GenerateButton,'Backgroundcolor','default');
         end
 
         % Button pushed function: ChooseFileButton
