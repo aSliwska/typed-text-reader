@@ -52,12 +52,18 @@ classdef AppUI_exported_ver1 < matlab.apps.AppBase
     methods (Access = private)
 
         function segmentationPreview(app, event)
+
+            set(app.PreviewButton,'Backgroundcolor','#EDB120');
+            drawnow();
+
             % if no image has been set by user
             try
                 imhandles(app.OriginalImage).CData;
             catch
+                set(app.PreviewButton,'Backgroundcolor','default');
                 return;
             end
+
 
             %%%%%%%%%%%%%%%% separator %%%%%%%%%%%%%%%%
 
@@ -74,19 +80,20 @@ classdef AppUI_exported_ver1 < matlab.apps.AppBase
             % show separator result
             showImage(app, app.SegmentationResultImage, segmentationResult);
 
-            set(app.PreviewButton,'Backgroundcolor','#77AC30');
-            pause(0.5);
-            set(app.PreviewButton,'Backgroundcolor','default');
-
+            flashGreenButton(app, app.PreviewButton);
         end
 
         % Button pushed function: GenerateButton
         function generateText(app, event)
 
+            set(app.GenerateButton,'Backgroundcolor','#EDB120');
+            drawnow();
+
             % if no image has been set by user
             try
                 imhandles(app.OriginalImage).CData;
             catch
+                set(app.GenerateButton,'Backgroundcolor','default');
                 return;
             end
 
@@ -109,9 +116,6 @@ classdef AppUI_exported_ver1 < matlab.apps.AppBase
 
             showImage(app, app.FoundTextLinesImage, foundTextLines);
 
-            % change active tab
-            % app.TabGroup.SelectedTab = app.SegmentationResultTab;
-
 
             %%%%%%%%%%%%%%%% recognizer %%%%%%%%%%%%%%%%
 
@@ -128,19 +132,15 @@ classdef AppUI_exported_ver1 < matlab.apps.AppBase
             % show separator result
             app.TextArea.Value = resultText;
 
-            % change active tab
-            % app.TabGroup.SelectedTab = app.TextTab;
-
-            recolorButton(app);
-
+            flashGreenButton(app, app.GenerateButton);
         end
 
         
 
-        function recolorButton(app)
-            set(app.GenerateButton,'Backgroundcolor','#77AC30');
+        function flashGreenButton(app, button)
+            set(button,'Backgroundcolor','#77AC30');
             pause(0.5);
-            set(app.GenerateButton,'Backgroundcolor','default');
+            set(button,'Backgroundcolor','default');
         end
 
         % Button pushed function: ChooseFileButton
@@ -520,7 +520,7 @@ classdef AppUI_exported_ver1 < matlab.apps.AppBase
             % Create ChooseFileButton
             app.ChooseFileButton = uibutton(app.ButtonGridLayout, 'push');
             app.ChooseFileButton.ButtonPushedFcn = createCallbackFcn(app, @loadImageFile, true);
-            app.ChooseFileButton.Layout.Row = 2;
+            app.ChooseFileButton.Layout.Row = 1;
             app.ChooseFileButton.Layout.Column = 1;
             app.ChooseFileButton.Text = 'Wybierz plik';
 
@@ -531,10 +531,10 @@ classdef AppUI_exported_ver1 < matlab.apps.AppBase
             app.GenerateButton.Layout.Column = 2;
             app.GenerateButton.Text = 'Generuj';
 
-            % Create GenerateButton
+            % Create PreviewButton
             app.PreviewButton = uibutton(app.ButtonGridLayout, 'push');
             app.PreviewButton.ButtonPushedFcn = createCallbackFcn(app, @segmentationPreview, true);
-            app.PreviewButton.Layout.Row = 1;
+            app.PreviewButton.Layout.Row = 2;
             app.PreviewButton.Layout.Column = 1;
             app.PreviewButton.Text = 'Preview segmentacji';
 
