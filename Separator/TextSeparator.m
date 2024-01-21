@@ -64,8 +64,8 @@ classdef TextSeparator
     
                     paragraphData{end + 1} = paragraph;
                 catch ME
-                    figure
-                    imshow(im2)
+                    % figure
+                    % imshow(im2)
                     ME
 
                 end
@@ -78,6 +78,20 @@ classdef TextSeparator
             image3 = largestLines; 
             paragraphs = paragraphData;
 
+        end
+
+        function segmentationRes = preview(obj, originalImage, separatorValues)
+            denoiseLevel = separatorValues{1};
+            letterMergeLevel = separatorValues{2};
+            segmentationLevel = separatorValues{3};
+            openLevel = separatorValues{4};
+            needsAdditionalSegmentation = separatorValues{5};
+
+
+            % Przekaż obraz do algorytmu odszumiającego, parametr określa
+            % agresję odszumiania
+            [~, imBinary] = preprocess(originalImage, denoiseLevel, letterMergeLevel, segmentationLevel, needsAdditionalSegmentation, openLevel);
+            segmentationRes = imBinary;
         end
     end
 end
