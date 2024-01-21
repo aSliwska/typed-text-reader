@@ -62,82 +62,82 @@ testData = double(testData) / 255;
 
 
 
-%%%% ODKOMENTUJ JEŚLI CHCESZ TRENOWAĆ MODEL %%%%%
-% Dostosowanie hiperparametrów
-options = trainingOptions('adam', ...
-    'MaxEpochs', 50, ...
-    'MiniBatchSize', 128, ...
-    'InitialLearnRate', 0.001, ...
-    'Shuffle', 'every-epoch', ...
-    'ValidationData', {validationData, valData.Labels}, ...
-    'ValidationFrequency', 10, ...
-    'Plots', 'training-progress', ...
-    'CheckpointPath', tempdir, ...
-    'ExecutionEnvironment', 'auto', ...
-    'Verbose', false, ...
-    'LearnRateSchedule', 'piecewise', ...
-    'LearnRateDropFactor', 0.1, ...
-    'LearnRateDropPeriod', 10, ...
-    'GradientThresholdMethod', 'absolute', ...
-    'GradientThreshold', 0.05, ...
-    'L2Regularization', 0.001);
-    % 'OutputFcn', @(info, event)stopIfAccuracyNotImproving(info, event, 5)
-
-
-% Architektura sieci
-layers = [
-    imageInputLayer([32 32 1])
-
-    convolution2dLayer(3, 16, 'Padding', 'same')
-    batchNormalizationLayer()
-    reluLayer()
-    maxPooling2dLayer(2, 'Stride', 2)
-
-    convolution2dLayer(3, 32, 'Padding', 'same')
-    batchNormalizationLayer()
-    reluLayer()
-    maxPooling2dLayer(2, 'Stride', 2)
-
-    convolution2dLayer(3, 32, 'Padding', 'same')
-    batchNormalizationLayer()
-    reluLayer()
-    maxPooling2dLayer(2, 'Stride', 2)
-
-    flattenLayer()
-
-    fullyConnectedLayer(256)
-
-    % Zapobiegaj za dużym wagom 
-    % fullyConnectedLayer(256, 'WeightLearnRateFactor', 10, 'WeightL2Factor', 1e-4)
-    
-    reluLayer()
-    dropoutLayer(0.5)
-
-    fullyConnectedLayer(52)
-    softmaxLayer()
-    classificationLayer()
-];
-
-% Trening sieci
-net = trainNetwork(imageData, trainData.Labels, layers, options);
-
-% Zapisz wytrenowany model
-save('trainedModel_v6_dropout.mat', 'net');
-
-
-
-%%%%% ODKOMENTUJ JEŚLI CHCESZ TRENOWAĆ MODEL - KONIEC %%%%%
+% %%%% ODKOMENTUJ JEŚLI CHCESZ TRENOWAĆ MODEL %%%%%
+% % Dostosowanie hiperparametrów
+% options = trainingOptions('sgdm', ...
+%     'MaxEpochs', 50, ...
+%     'MiniBatchSize', 128, ...
+%     'InitialLearnRate', 0.005, ...
+%     'Shuffle', 'every-epoch', ...
+%     'ValidationData', {validationData, valData.Labels}, ...
+%     'ValidationFrequency', 10, ...
+%     'Plots', 'training-progress', ...
+%     'CheckpointPath', tempdir, ...
+%     'ExecutionEnvironment', 'auto', ...
+%     'Verbose', false, ...
+%     'LearnRateSchedule', 'piecewise', ...
+%     'LearnRateDropFactor', 0.1, ...
+%     'LearnRateDropPeriod', 10, ...
+%     'GradientThresholdMethod', 'absolute', ...
+%     'GradientThreshold', 0.05, ...
+%     'L2Regularization', 0.001);
+%     % 'OutputFcn', @(info, event)stopIfAccuracyNotImproving(info, event, 5)
+% 
+% 
+% % Architektura sieci
+% layers = [
+%     imageInputLayer([32 32 1])
+% 
+%     convolution2dLayer(3, 16, 'Padding', 'same')
+%     batchNormalizationLayer()
+%     reluLayer()
+%     maxPooling2dLayer(2, 'Stride', 2)
+% 
+%     convolution2dLayer(3, 32, 'Padding', 'same')
+%     batchNormalizationLayer()
+%     reluLayer()
+%     maxPooling2dLayer(2, 'Stride', 2)
+% 
+%     convolution2dLayer(3, 32, 'Padding', 'same')
+%     batchNormalizationLayer()
+%     reluLayer()
+%     maxPooling2dLayer(2, 'Stride', 2)
+% 
+%     flattenLayer()
+% 
+%     fullyConnectedLayer(256)
+% 
+%     % Zapobiegaj za dużym wagom 
+%     % fullyConnectedLayer(256, 'WeightLearnRateFactor', 10, 'WeightL2Factor', 1e-4)
+% 
+%     reluLayer()
+%     dropoutLayer(0.3)
+% 
+%     fullyConnectedLayer(52)
+%     softmaxLayer()
+%     classificationLayer()
+% ];
+% 
+% % Trening sieci
+% net = trainNetwork(imageData, trainData.Labels, layers, options);
+% 
+% % Zapisz wytrenowany model
+% save('trainedModel_v7_dropout.mat', 'net');
+% 
+% 
+% 
+% %%%%% ODKOMENTUJ JEŚLI CHCESZ TRENOWAĆ MODEL - KONIEC %%%%%
 
 %%%%% SPRAWDŹ POPRAWNOŚĆ MODELU %%%%%
 % Wczytaj wytrenowany model
-load('trainedModel_v6_dropout.mat', 'net');
+load('trainedModel_v7_dropout.mat', 'net');
 tData.Labels = categorical(tData.Labels);
 
 % Wykorzystaj wytrenowany model do określenia etykiet dla zbiory testowego
 predictedLabels = classify(net, testData);
 
 % Konwertuj etykiety do typu double
-numericPredictedLabels = double(predictedLabels);
+% numericPredictedLabels = double(predictedLabels);
 
 % Narysuj macierz konfuzji
 confusionchart(tData.Labels,predictedLabels)
