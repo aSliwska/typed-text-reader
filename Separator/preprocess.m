@@ -7,9 +7,11 @@ function [imresult, imbin] = preprocess(image, agresjaFiltrowania, agresjaMergeo
 
         % Popraw kontrast
         im = imadjust(im);
+
+        segSens = dodatkoweOtwarcie / 100;
         
         % Progowanie adaptacyjne daje lepsze wyniki dla zanieczyszczonego tekstu
-        T = adaptthresh(im, 0.85, 'NeighborhoodSize', 65);
+        T = adaptthresh(im, segSens, 'NeighborhoodSize', 65, 'ForegroundPolarity', 'dark');
         im = ~imbinarize(im,T);
 
 
@@ -89,7 +91,7 @@ function [imresult, imbin] = preprocess(image, agresjaFiltrowania, agresjaMergeo
                         filtSize = filtSize - 1;
                     end
     
-                    T = adaptthresh(originalImageSample, 0.15, 'NeighborhoodSize', filtSize, 'ForegroundPolarity', 'dark', 'Statistic', 'gaussian');
+                    T = adaptthresh(originalImageSample, segSens - 0.05, 'NeighborhoodSize', filtSize, 'ForegroundPolarity', 'dark');
                     originalImageSample = ~imbinarize(originalImageSample,T);
 
                     originalImageSample = imopen(originalImageSample, ones(agresjaFiltrowania));
