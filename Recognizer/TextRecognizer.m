@@ -37,7 +37,8 @@ classdef TextRecognizer
             end
             % Zwróć wynik
             extractedLines
-            resultText = upper(extractedLines);
+            % resultText = upper(extractedLines);
+            resultText = extractedLines;
         end
     end
 end
