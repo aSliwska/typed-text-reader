@@ -536,7 +536,7 @@ classdef AppUI_exported_ver1 < matlab.apps.AppBase
             app.PreviewButton.ButtonPushedFcn = createCallbackFcn(app, @segmentationPreview, true);
             app.PreviewButton.Layout.Row = 2;
             app.PreviewButton.Layout.Column = 1;
-            app.PreviewButton.Text = 'Preview segmentacji';
+            app.PreviewButton.Text = 'Podgląd segmentacji';
 
             % Create OptionsGridLayout
             app.OptionsGridLayout = uigridlayout(app.RightPanelGridLayout);
