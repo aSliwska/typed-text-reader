@@ -250,24 +250,13 @@ classdef AppUI_exported_ver1 < matlab.apps.AppBase
                     switch class(fields(i))
                         case 'matlab.ui.control.Slider'
                             fields(i).Value = str2double(stringValue);
-        
-                        case 'matlab.ui.control.DropDown'
-                            fields(i).Value = stringValue;
-        
-                        case 'matlab.ui.control.AdditionalSegmentationCheckBox'
+
+                        case 'matlab.ui.control.CheckBox'
                             if stringValue == "true"
                                 fields(i).Value = 1;
                             else
                                 fields(i).Value = 0;
                             end
-        
-                        case 'matlab.ui.control.NumericEditField'
-                            fields(i).Value = str2double(stringValue);
-        
-                        case 'matlab.ui.control.RangeSlider'
-                            bothValuesAsStrings = strsplit(stringValue);
-                            fields(i).Value(1) = str2double(bothValuesAsStrings{1}(2:end));
-                            fields(i).Value(2) = str2double(bothValuesAsStrings{2}(1:end-1));
                     end
 
                     return;
@@ -305,17 +294,8 @@ classdef AppUI_exported_ver1 < matlab.apps.AppBase
                 case 'matlab.ui.control.Slider'
                     stringValue = sprintf('%.4f', field.Value);
 
-                case 'matlab.ui.control.DropDown'
+                case 'matlab.ui.control.CheckBox'
                     stringValue = string(field.Value);
-
-                case 'matlab.ui.control.AdditionalSegmentationCheckBox'
-                    stringValue = string(field.Value);
-
-                case 'matlab.ui.control.NumericEditField'
-                    stringValue = sprintf('%.4f', field.Value);
-
-                case 'matlab.ui.control.RangeSlider'
-                    stringValue = sprintf('[%.1f %.1f]', field.Value(1), field.Value(2));
             end
         end
 
