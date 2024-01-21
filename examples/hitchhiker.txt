@@ -1,0 +1,5 @@
+tagDenoiseLevelSlider=9.2307
+tagLetterMergeLevelSlider=16.3666
+tagSegmentationLevelSlider=45.2395
+tagSlider4=5.0000
+tagAdditionalSegmentationCheckBox=false
