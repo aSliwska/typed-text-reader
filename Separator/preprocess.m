@@ -1,4 +1,4 @@
-function [imresult, imbin] = preprocess(image, agresjaFiltrowania, agresjaMergeowania, czuloscSegmentacji, dodatkowaSegmentacja)
+function [imresult, imbin] = preprocess(image, agresjaFiltrowania, agresjaMergeowania, czuloscSegmentacji, dodatkowaSegmentacja, dodatkoweOtwarcie)
 
         close all
 
@@ -25,6 +25,8 @@ function [imresult, imbin] = preprocess(image, agresjaFiltrowania, agresjaMergeo
             im = imopen(im, ones(agresjaFiltrowania));
             im = medfilt2(im);
         end
+
+        
 
         im = imclearborder(im);
 
@@ -58,6 +60,8 @@ function [imresult, imbin] = preprocess(image, agresjaFiltrowania, agresjaMergeo
         % wielkością/innymi parametrami od liter i jeszcze raz
         % przeprowadzić na tych obszarach segmentację (aby np. pozbyć się
         % wieloznaków, nie wszystkich ale części)
+
+
         
         
 
@@ -85,12 +89,10 @@ function [imresult, imbin] = preprocess(image, agresjaFiltrowania, agresjaMergeo
                         filtSize = filtSize - 1;
                     end
     
-                    T = adaptthresh(originalImageSample, 0.95, 'NeighborhoodSize', filtSize);
+                    T = adaptthresh(originalImageSample, 0.15, 'NeighborhoodSize', filtSize, 'ForegroundPolarity', 'dark', 'Statistic', 'gaussian');
                     originalImageSample = ~imbinarize(originalImageSample,T);
 
                     originalImageSample = imopen(originalImageSample, ones(agresjaFiltrowania));
-    
-    
     
                     startingX = ceil(box(2));
                     startingY = ceil(box(1));
