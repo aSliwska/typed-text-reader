@@ -22,6 +22,7 @@ classdef AppUI_exported_ver1 < matlab.apps.AppBase
         LetterMergeLevelLabel           matlab.ui.control.Label
         ButtonGridLayout                matlab.ui.container.GridLayout
         GenerateButton                  matlab.ui.control.Button
+        PreviewButton                   matlab.ui.control.Button
         ChooseFileButton                matlab.ui.control.Button
         TabGroup                        matlab.ui.container.TabGroup
         OriginalImageTab                matlab.ui.container.Tab
@@ -50,6 +51,33 @@ classdef AppUI_exported_ver1 < matlab.apps.AppBase
     % Callbacks that handle component events
     methods (Access = private)
 
+        function segmentationPreview(app, event)
+            % if no image has been set by user
+            try
+                imhandles(app.OriginalImage).CData;
+            catch
+                return;
+            end
+
+
+            %%%%%%%%%%%%%%%% separator %%%%%%%%%%%%%%%%
+
+            % get values for separator
+            separatorValues = {zeros(length(app.separatorFields))};
+
+            for i = 1:length(app.separatorFields)
+                separatorValues{i} = app.separatorFields(i).Value;
+            end
+
+            % run separator
+            segmentationResult = app.separator.preview(imhandles(app.OriginalImage).CData, separatorValues);
+
+            % show separator result
+            showImage(app, app.SegmentationResultImage, segmentationResult);
+
+            flashGreenButton(app, app.PreviewButton);
+        end
+
         % Button pushed function: GenerateButton
         function generateText(app, event)
 
@@ -59,6 +87,8 @@ classdef AppUI_exported_ver1 < matlab.apps.AppBase
             catch
                 return;
             end
+
+            set(app.GenerateButton,'Backgroundcolor',"#EDB120");
 
             %%%%%%%%%%%%%%%% separator %%%%%%%%%%%%%%%%
 
@@ -79,9 +109,6 @@ classdef AppUI_exported_ver1 < matlab.apps.AppBase
 
             showImage(app, app.FoundTextLinesImage, foundTextLines);
 
-            % change active tab
-            % app.TabGroup.SelectedTab = app.SegmentationResultTab;
-
 
             %%%%%%%%%%%%%%%% recognizer %%%%%%%%%%%%%%%%
 
@@ -98,17 +125,15 @@ classdef AppUI_exported_ver1 < matlab.apps.AppBase
             % show separator result
             app.TextArea.Value = resultText;
 
-            % change active tab
-            % app.TabGroup.SelectedTab = app.TextTab;
-
-            recolorButton(app);
-
+            flashGreenButton(app, app.GenerateButton);
         end
 
-        function recolorButton(app)
-            set(app.GenerateButton,'Backgroundcolor','#77AC30');
+        
+
+        function flashGreenButton(app, button)
+            set(button,'Backgroundcolor','#77AC30');
             pause(0.5);
-            set(app.GenerateButton,'Backgroundcolor','default');
+            set(button,'Backgroundcolor','default');
         end
 
         % Button pushed function: ChooseFileButton
@@ -473,7 +498,7 @@ classdef AppUI_exported_ver1 < matlab.apps.AppBase
             % Create RightPanelGridLayout
             app.RightPanelGridLayout = uigridlayout(app.MainGridLayout);
             app.RightPanelGridLayout.ColumnWidth = {'1x'};
-            app.RightPanelGridLayout.RowHeight = {'8x', '1x'};
+            app.RightPanelGridLayout.RowHeight = {'8x', '2x'};
             app.RightPanelGridLayout.RowSpacing = 0;
             app.RightPanelGridLayout.Padding = [0 0 0 0];
             app.RightPanelGridLayout.Layout.Row = 1;
@@ -495,9 +520,16 @@ classdef AppUI_exported_ver1 < matlab.apps.AppBase
             % Create GenerateButton
             app.GenerateButton = uibutton(app.ButtonGridLayout, 'push');
             app.GenerateButton.ButtonPushedFcn = createCallbackFcn(app, @generateText, true);
-            app.GenerateButton.Layout.Row = 1;
+            app.GenerateButton.Layout.Row = 2;
             app.GenerateButton.Layout.Column = 2;
             app.GenerateButton.Text = 'Generuj';
+
+            % Create PreviewButton
+            app.PreviewButton = uibutton(app.ButtonGridLayout, 'push');
+            app.PreviewButton.ButtonPushedFcn = createCallbackFcn(app, @segmentationPreview, true);
+            app.PreviewButton.Layout.Row = 2;
+            app.PreviewButton.Layout.Column = 1;
+            app.PreviewButton.Text = 'Preview segmentacji';
 
             % Create OptionsGridLayout
             app.OptionsGridLayout = uigridlayout(app.RightPanelGridLayout);
@@ -550,7 +582,7 @@ classdef AppUI_exported_ver1 < matlab.apps.AppBase
             app.SegmentationLevelSlider = uislider(app.OptionsGridLayout);
             app.SegmentationLevelSlider.MinorTicks = [0 5 10 15 20 25 30 35 40 45 50 55 60 65 70 75 80 85 90 95 100];
             app.SegmentationLevelSlider.Layout.Row = 3;
-            app.SegmentationLevelSlider.Value = 50;
+            app.SegmentationLevelSlider.Value = 60;
             app.SegmentationLevelSlider.Layout.Column = 2;
             app.SegmentationLevelSlider.Tag = 'tagSegmentationLevelSlider';
 
@@ -559,11 +591,11 @@ classdef AppUI_exported_ver1 < matlab.apps.AppBase
             app.Slider4Label.HorizontalAlignment = 'center';
             app.Slider4Label.Layout.Row = 4;
             app.Slider4Label.Layout.Column = 1;
-            app.Slider4Label.Text = 'Czułość ';
+            app.Slider4Label.Text = 'Czułość adaptacyjnej binaryzacji';
 
             % Create Slider4
             app.Slider4 = uislider(app.OptionsGridLayout);
-            app.Slider4.MinorTicks = [10 15 20 25 30 35 40 45 50 55 60 65 70 75 80 85 90];
+            app.Slider4.MinorTicks = [0 5 10 15 20 25 30 35 40 45 50 55 60 65 70 75 80 85 90 95 100];
             app.Slider4.Layout.Row = 4;
             app.Slider4.Value = 25;
             app.Slider4.Layout.Column = 2;
