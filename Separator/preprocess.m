@@ -1,4 +1,4 @@
-function [imresult, imbin] = preprocess(image, agresjaFiltrowania, agresjaMergeowania, czuloscSegmentacji, dodatkowaSegmentacja)
+function [imresult, imbin] = preprocess(image, agresjaFiltrowania, agresjaMergeowania, czuloscSegmentacji, dodatkowaSegmentacja, dodatkoweOtwarcie)
 
         close all
 
@@ -7,30 +7,31 @@ function [imresult, imbin] = preprocess(image, agresjaFiltrowania, agresjaMergeo
 
         % Popraw kontrast
         im = imadjust(im);
+
+        segSens = dodatkoweOtwarcie / 100;
         
         % Progowanie adaptacyjne daje lepsze wyniki dla zanieczyszczonego tekstu
-        T = adaptthresh(im, 0.85, 'NeighborhoodSize', 55);
+        T = adaptthresh(im, segSens, 'NeighborhoodSize', 65, 'ForegroundPolarity', 'dark');
         im = ~imbinarize(im,T);
 
 
         % Odszumianie
         
-        agresjaFiltrowania = ceil(agresjaFiltrowania / 100 * 4);
+        agresjaFiltrowania = ceil(agresjaFiltrowania / 100 * 10);
 
    
         % Wstępne odszumianie i usuwanie artefaktów
         im = imclearborder(im);
 
         if (agresjaFiltrowania > 1)
-            im = imclose(im, ones(agresjaFiltrowania));
             im = imopen(im, ones(agresjaFiltrowania));
             im = medfilt2(im);
         end
 
+        
+
         im = imclearborder(im);
 
-
-        
         
         % Regionprops do ustalenia parametrów liter
 
@@ -38,9 +39,7 @@ function [imresult, imbin] = preprocess(image, agresjaFiltrowania, agresjaMergeo
         props = regionprops(im,'BoundingBox', 'Area');
        
         S = cat(1, props.BoundingBox);
-
-
-
+        meanH = round(mean(S(:,4)));
 
         % Filtr zanieczyszczen - usuwa obszary o polu znacznie mniejszym od
         % pola sredniej litery, kropki srednio nie wchodza w ta kategorie
@@ -50,10 +49,8 @@ function [imresult, imbin] = preprocess(image, agresjaFiltrowania, agresjaMergeo
         outlier = (P - meanP)./ devP;
         outidx = find(outlier < -2.5);
         im(ismember(im,outidx)) = 0;
+        
         im = (im > 0);
-
-
-        meanH = round(mean(S(:,4)));
 
         mergeCoeff = round(meanH / 4 * (agresjaMergeowania / 100));
 
@@ -65,10 +62,12 @@ function [imresult, imbin] = preprocess(image, agresjaFiltrowania, agresjaMergeo
         % wielkością/innymi parametrami od liter i jeszcze raz
         % przeprowadzić na tych obszarach segmentację (aby np. pozbyć się
         % wieloznaków, nie wszystkich ale części)
+
+
         
         
 
-        if (dodatkowaSegmentacja == 1 && agresjaMergeowania > 1 && agresjaFiltrowania > 1)
+        if (dodatkowaSegmentacja == 1)
             im = bwlabel(im > 0);
             props = regionprops(im, 'BoundingBox');
             boxes = cat(1, props.BoundingBox);
@@ -92,12 +91,10 @@ function [imresult, imbin] = preprocess(image, agresjaFiltrowania, agresjaMergeo
                         filtSize = filtSize - 1;
                     end
     
-                    T = adaptthresh(originalImageSample, 0.95, 'NeighborhoodSize', filtSize);
+                    T = adaptthresh(originalImageSample, segSens - 0.05, 'NeighborhoodSize', filtSize, 'ForegroundPolarity', 'dark');
                     originalImageSample = ~imbinarize(originalImageSample,T);
-    
+
                     originalImageSample = imopen(originalImageSample, ones(agresjaFiltrowania));
-    
-    
     
                     startingX = ceil(box(2));
                     startingY = ceil(box(1));
@@ -105,10 +102,11 @@ function [imresult, imbin] = preprocess(image, agresjaFiltrowania, agresjaMergeo
                     widthX = startingX + size(originalImageSample, 1) - 1;
                     widthY = startingY + size(originalImageSample, 2) - 1;
     
-                    originalImageSample = imclose(originalImageSample, ones(mergeCoeff));
+                    originalImageSample = imclose(originalImageSample, ones(2));
+                    originalImageSample = bwmorph(originalImageSample, "thicken", mergeCoeff);
     
     
-                    im(startingX:widthX, startingY:widthY) = bwmorph(originalImageSample, "thicken", mergeCoeff);
+                    im(startingX:widthX, startingY:widthY) = originalImageSample;
     
                     % figure
                     % imshow(originalImageSample)
